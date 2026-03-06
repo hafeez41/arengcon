@@ -31,7 +31,7 @@ export default function Studio() {
               Architecture rooted in<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>African identity</em>
             </motion.h2>
           </div>
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2, duration: 0.5 }} style={{ fontFamily: 'var(--sans)', fontWeight: 300, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)', marginBottom: 32 }}>
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2, duration: 0.5 }} style={{ fontFamily: 'var(--sans)', fontWeight: 300, fontSize: 15, lineHeight: 1.8, color: 'var(--muted)', marginBottom: 32 }}>
             Arengcon was founded on the belief that great design is inseparable from its place. Our multidisciplinary team draws on a deep understanding of Nigerian landscapes, climate, and culture to deliver buildings that are at once contemporary and grounded.
           </motion.p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
@@ -39,8 +39,8 @@ export default function Studio() {
               <motion.div key={v.title} initial={{ opacity: 0, x: -14 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.09, duration: 0.5 }} style={{ display: 'flex', gap: 14 }}>
                 <span style={{ width: 2, flexShrink: 0, background: 'var(--gold)', borderRadius: 1, alignSelf: 'stretch' }} />
                 <div>
-                  <p style={{ fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 3 }}>{v.title}</p>
-                  <p style={{ fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 300, color: 'var(--muted)', lineHeight: 1.6 }}>{v.desc}</p>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 500, color: 'var(--text)', marginBottom: 3 }}>{v.title}</p>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 300, color: 'var(--muted)', lineHeight: 1.6 }}>{v.desc}</p>
                 </div>
               </motion.div>
             ))}

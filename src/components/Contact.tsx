@@ -5,7 +5,7 @@ const INPUT_STYLE: React.CSSProperties = {
   width: '100%', background: 'transparent',
   border: 'none', borderBottom: '1px solid var(--border)',
   padding: '12px 0', color: 'var(--text)',
-  fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 300,
+  fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300,
   outline: 'none', transition: 'border-color 0.3s',
 }
 
@@ -47,8 +47,8 @@ export default function Contact() {
               { label: 'Hours',  val: 'Mon – Fri, 8am – 6pm WAT' },
             ].map(item => (
               <div key={item.label}>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 20, paddingTop: 8 }}>
@@ -65,13 +65,13 @@ export default function Contact() {
             {sent ? (
               <div style={{ paddingTop: 40 }}>
                 <p style={{ fontFamily: 'var(--serif)', fontSize: 32, fontWeight: 300, color: 'var(--text)', marginBottom: 10 }}>Thank you.</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
               </div>
             ) : (
               <form onSubmit={e => { e.preventDefault(); setSent(true) }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
                 {([['name','text','Name','Your name'],['email','email','Email','your@email.com']] as [string,string,string,string][]).map(([id,type,label,ph]) => (
                   <div key={id}>
-                    <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>{label}</p>
+                    <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>{label}</p>
                     <input id={id} type={type} required placeholder={ph}
                       value={form[id as 'name'|'email']}
                       onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
@@ -81,7 +81,7 @@ export default function Contact() {
                   </div>
                 ))}
                 <div>
-                  <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>Message</p>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>Message</p>
                   <textarea required rows={4} placeholder="Tell us about your project..."
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}

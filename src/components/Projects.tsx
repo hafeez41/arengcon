@@ -158,12 +158,12 @@ function Card({ p, i, onOpen }: { p: Project; i: number; onOpen: (p: Project) =>
       {/* Text */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontSize: 19, fontWeight: 300, color: 'var(--text)', lineHeight: 1.2 }}>
+          <h3 style={{ fontFamily: 'var(--serif)', fontSize: 21, fontWeight: 300, color: 'var(--text)', lineHeight: 1.2 }}>
             {p.title}
           </h3>
-          <span style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', flexShrink: 0, marginLeft: 8 }}>{p.year}</span>
+          <span style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', flexShrink: 0, marginLeft: 8 }}>{p.year}</span>
         </div>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.04em' }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', letterSpacing: '0.04em' }}>
           {p.location}, Nigeria
         </p>
       </div>

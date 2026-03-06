@@ -1,5 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+/*
+  ── Fonts ───────────────────────────────────────────────────────────
+  Primary: Bank Gothic (commercial – add the .woff2 file to /public/fonts/
+           and uncomment the @font-face below to activate it)
+  Fallback: Rajdhani (Google Fonts – geometric, condensed, similar feel)
+
+  @font-face {
+    font-family: 'Bank Gothic';
+    src: url('/fonts/BankGothic-Light.woff2') format('woff2'),
+         url('/fonts/BankGothic-Light.woff')  format('woff');
+    font-weight: 300;
+    font-style:  normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Bank Gothic';
+    src: url('/fonts/BankGothic-Medium.woff2') format('woff2'),
+         url('/fonts/BankGothic-Medium.woff')  format('woff');
+    font-weight: 400 500;
+    font-style:  normal;
+    font-display: swap;
+  }
+*/
 
 /* ─── Dark mode tokens (default) ─────────────────────────────────── */
 :root {
@@ -12,8 +36,9 @@
   --gold:      #c4a877;
   --gold-dim:  rgba(196, 168, 119, 0.12);
 
-  --serif: 'Cormorant Garamond', Georgia, serif;
-  --sans:  'Inter', system-ui, sans-serif;
+  /* Bank Gothic first; Rajdhani kicks in when Bank Gothic is not installed */
+  --serif: 'Bank Gothic', 'BankGothic Lt BT', 'BankGothic Md BT', 'Rajdhani', system-ui, sans-serif;
+  --sans:  'Bank Gothic', 'BankGothic Lt BT', 'BankGothic Md BT', 'Rajdhani', system-ui, sans-serif;
 }
 
 /* ─── Light mode overrides ───────────────────────────────────────── */

@@ -61,7 +61,7 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
       >
         {/* Logo */}
         <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
-          <LogoIcon style={{ width: 28, height: 28 }} />
+          <LogoIcon style={{ width: 40, height: 40 }} />
           <span style={{ fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>Arengcon</span>
         </button>
 

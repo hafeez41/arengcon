@@ -42,7 +42,7 @@ export default function Hero() {
 
         <motion.div initial={{ opacity: 0, y: 14 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.55, delay: 0.35 }}
           style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 20, marginTop: 22, marginBottom: 48 }}>
-          <p style={{ fontFamily: 'var(--sans)', fontWeight: 300, fontSize: 13, lineHeight: 1.75, color: 'var(--muted)', maxWidth: 340 }}>
+          <p style={{ fontFamily: 'var(--sans)', fontWeight: 300, fontSize: 15, lineHeight: 1.75, color: 'var(--muted)', maxWidth: 340 }}>
             Architecture, interior design, and construction<br />that honour craft, context, and the people<br />who inhabit our work.
           </p>
           <button onClick={() => document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' })}
@@ -65,7 +65,7 @@ export default function Hero() {
         ].map((s, i) => (
           <div key={s.label} style={{ padding: '16px 0', textAlign: 'center' as const, borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
             <p style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 300, color: 'var(--text)', lineHeight: 1 }}>{s.num}</p>
-            <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginTop: 5 }}>{s.label}</p>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginTop: 5 }}>{s.label}</p>
           </div>
         ))}
       </motion.div>

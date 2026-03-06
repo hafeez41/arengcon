@@ -61,7 +61,7 @@ function Row({ s, i }: { s: typeof SERVICES[0]; i: number }) {
         }}>
           {s.title}
         </h3>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)', maxWidth: 520 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)', maxWidth: 520 }}>
           {s.desc}
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginTop: 16 }}>
