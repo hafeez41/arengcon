@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+/* ─── Dark mode tokens (default) ─────────────────────────────────── */
+:root {
+  --bg:        #0c0c0a;
+  --surface:   #141412;
+  --border:    rgba(255, 255, 255, 0.08);
+  --text:      #eeebe5;
+  --muted:     #9a9690;          /* was #6e6b65 — now readable on dark */
+  --muted2:    #6e6b65;          /* extra-quiet labels */
+  --gold:      #c4a877;
+  --gold-dim:  rgba(196, 168, 119, 0.12);
+
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'Inter', system-ui, sans-serif;
+}
+
+/* ─── Light mode overrides ───────────────────────────────────────── */
+html.light {
+  --bg:        #f5f2ed;
+  --surface:   #ece8e1;
+  --border:    rgba(0, 0, 0, 0.09);
+  --text:      #1a1a18;
+  --muted:     #6a6560;
+  --muted2:    #9a9690;
+  --gold:      #9e7840;          /* darker gold legible on light bg */
+  --gold-dim:  rgba(158, 120, 64, 0.1);
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+#root { width: 100%; }
+
+/* ─── Custom cursor ──────────────────────────────────────────────── */
+.cur-dot {
+  width: 6px; height: 6px;
+  background: var(--text);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+.cur-ring {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(238, 235, 229, 0.3);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.25s ease, height 0.25s ease, border-color 0.25s ease;
+}
+html.light .cur-ring {
+  border-color: rgba(26, 26, 24, 0.25);
+}
+.cur-ring.hovered {
+  width: 52px; height: 52px;
+  border-color: var(--gold);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
+
+/* ─── Selection ─────────────────────────────────────────────────── */
+::selection { background: var(--gold); color: var(--bg); }
+
+/* ─── Heading overflow wrapper ───────────────────────────────────── */
+/* Prevents italic/tall letters (G, y, g) from being clipped         */
+.heading-clip {
+  overflow: hidden;
+  /* extra room above for capitals, below for descenders */
+  padding: 0.08em 0.04em 0.18em;
+  margin: -0.08em -0.04em -0.18em;
+}
+
+/* ─── Link underline slide ───────────────────────────────────────── */
+.link-slide {
+  position: relative; display: inline-block;
+}
+.link-slide::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.link-slide:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* ─── Image zoom container ───────────────────────────────────────── */
+.img-zoom { overflow: hidden; }
+.img-zoom img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.img-zoom:hover img { transform: scale(1.04); }
+
+/* ─── Modal ──────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end;
+}
+.modal-panel {
+  background: var(--bg);
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Hero always dark ───────────────────────────────────────────── */
+/* The hero has a fixed dark photo overlay that never changes with    */
+/* the theme, so we lock its CSS vars to dark-mode values always.    */
+#hero {
+  --text:   #eeebe5;
+  --muted:  #9a9690;
+  --gold:   #c4a877;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Navbar transparent state always dark ───────────────────────── */
+/* When the navbar has no background (not scrolled) it floats over   */
+/* the dark hero image, so text/logo must stay light in both themes. */
+/* Once scrolled ([data-scrolled] is present) it adopts the theme.   */
+html.light header:not([data-scrolled]) {
+  --text:   #eeebe5;
+  --muted:  #9a9690;
+  --gold:   #c4a877;
+  --border: rgba(255, 255, 255, 0.12);
+}
+
+/* ─── Theme toggle button ────────────────────────────────────────── */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: none;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
