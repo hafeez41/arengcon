@@ -81,8 +81,9 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
         position: 'fixed', inset: 0, zIndex: 200,
         background: 'rgba(10,10,8,0.82)',
         backdropFilter: 'blur(6px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: 'clamp(16px, 4vw, 40px)',
+        overflowY: 'auto',
         cursor: 'none',
       }}
     >
@@ -97,13 +98,12 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
           border: '1px solid var(--border)',
           width: '100%',
           maxWidth: 1040,
-          maxHeight: '90vh',
-          overflow: 'hidden',
           display: 'grid',
           /* image left, content right on wide screens; stack on mobile */
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
           cursor: 'none',
           position: 'relative',
+          alignSelf: 'center',
         }}
       >
         {/* Image */}
@@ -126,7 +126,6 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
         {/* Content */}
         <div style={{
           padding: 'clamp(28px, 4vw, 48px)',
-          overflowY: 'auto',
           display: 'flex', flexDirection: 'column', gap: 24,
         }}>
           {/* Close */}
@@ -161,7 +160,7 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
           {/* Long description */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {s.longDesc.split('\n\n').map((para, i) => (
-              <p key={i} style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300, lineHeight: 1.8, color: 'var(--muted)' }}>
+              <p key={i} style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, lineHeight: 1.8, color: 'var(--muted)' }}>
                 {para}
               </p>
             ))}
@@ -178,7 +177,7 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
                 }}>
                   {h.label}
                 </span>
-                <span style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 300, color: 'var(--text)', lineHeight: 1.5 }}>
+                <span style={{ fontFamily: 'var(--sans)', fontSize: 16, fontWeight: 300, color: 'var(--text)', lineHeight: 1.5 }}>
                   {h.value}
                 </span>
               </div>
@@ -265,7 +264,7 @@ function Row({ s, i, onOpen }: { s: Service; i: number; onOpen: () => void }) {
             View Details
           </motion.span>
         </div>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)', maxWidth: 520 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)', maxWidth: 520 }}>
           {s.desc}
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginTop: 16 }}>

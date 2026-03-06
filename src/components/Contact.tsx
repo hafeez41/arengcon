@@ -5,7 +5,7 @@ const INPUT_STYLE: React.CSSProperties = {
   width: '100%', background: 'transparent',
   border: 'none', borderBottom: '1px solid var(--border)',
   padding: '12px 0', color: 'var(--text)',
-  fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300,
+  fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300,
   outline: 'none', transition: 'border-color 0.3s',
 }
 
@@ -48,7 +48,7 @@ export default function Contact() {
             ].map(item => (
               <div key={item.label}>
                 <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 20, paddingTop: 8 }}>
@@ -65,7 +65,7 @@ export default function Contact() {
             {sent ? (
               <div style={{ paddingTop: 40 }}>
                 <p style={{ fontFamily: 'var(--serif)', fontSize: 32, fontWeight: 300, color: 'var(--text)', marginBottom: 10 }}>Thank you.</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 17, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
               </div>
             ) : (
               <form onSubmit={e => { e.preventDefault(); setSent(true) }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>

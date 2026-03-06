@@ -161,9 +161,9 @@ function Card({ p, i, onOpen }: { p: Project; i: number; onOpen: (p: Project) =>
           <h3 style={{ fontFamily: 'var(--serif)', fontSize: 21, fontWeight: 300, color: 'var(--text)', lineHeight: 1.2 }}>
             {p.title}
           </h3>
-          <span style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', flexShrink: 0, marginLeft: 8 }}>{p.year}</span>
+          <span style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--muted)', flexShrink: 0, marginLeft: 8 }}>{p.year}</span>
         </div>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', letterSpacing: '0.04em' }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--muted)', letterSpacing: '0.04em' }}>
           {p.location}, Nigeria
         </p>
       </div>
