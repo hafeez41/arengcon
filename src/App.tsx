@@ -39,9 +39,9 @@ export default function App() {
               <Hero />
               <Projects />
               <Services />
-              <Studio />
               <Team />
               <References />
+              <Studio />
               <Contact />
             </main>
             <Footer />

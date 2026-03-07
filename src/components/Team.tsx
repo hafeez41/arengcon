@@ -80,12 +80,12 @@ function Card({ m, i }: { m: typeof TEAM[0]; i: number }) {
       style={{ cursor: 'none' }}
     >
       {/* Photo */}
-      <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', marginBottom: 14, background: 'var(--surface)' }}>
+      <div style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', marginBottom: 12, background: 'var(--surface)', borderRadius: 2 }}>
         <img
           src={m.image}
           alt={m.name}
           style={{
-            width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+            width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block',
             transform: hovered ? 'scale(1.05)' : 'scale(1)',
             transition: 'transform 0.55s ease',
           }}
@@ -94,12 +94,12 @@ function Card({ m, i }: { m: typeof TEAM[0]; i: number }) {
         <div style={{
           position: 'absolute', inset: 0,
           background: 'rgba(12,12,10,0.88)',
-          padding: 20,
+          padding: 16,
           display: 'flex', alignItems: 'flex-end',
           opacity: hovered ? 1 : 0,
           transition: 'opacity 0.35s ease',
         }}>
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)' }}>
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 300, lineHeight: 1.6, color: 'var(--muted)' }}>
             {m.bio}
           </p>
         </div>
@@ -107,15 +107,15 @@ function Card({ m, i }: { m: typeof TEAM[0]; i: number }) {
 
       {/* Name + role */}
       <p style={{
-        fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 300,
+        fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 300,
         color: hovered ? 'var(--gold)' : 'var(--text)',
-        transition: 'color 0.3s', marginBottom: 4,
+        transition: 'color 0.3s', marginBottom: 3,
       }}>
         {m.name}
       </p>
       <p style={{
-        fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.2em',
-        textTransform: 'uppercase', color: 'var(--muted)',
+        fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.18em',
+        textTransform: 'uppercase', color: 'var(--muted)', lineHeight: 1.4,
       }}>
         {m.role}
       </p>
@@ -132,7 +132,7 @@ export default function Team() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
-        <div ref={headRef} style={{ marginBottom: 'clamp(40px, 6vw, 72px)' }}>
+        <div ref={headRef} style={{ marginBottom: 'clamp(32px, 5vw, 64px)' }}>
           <motion.p
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
             style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.38em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14 }}
@@ -150,11 +150,11 @@ export default function Team() {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Grid — 2 cols on mobile, scales up to 5 on desktop */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))',
-          gap: 'clamp(24px, 3vw, 40px)',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(calc(50% - 12px), 160px), 1fr))',
+          gap: 'clamp(16px, 2.5vw, 32px)',
         }}>
           {TEAM.map((m, i) => <Card key={m.name} m={m} i={i} />)}
         </div>

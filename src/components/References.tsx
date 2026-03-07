@@ -62,16 +62,16 @@ function RefCard({ r, i }: { r: typeof REFS[0]; i: number }) {
     >
       {/* Opening quote mark */}
       <span style={{
-        fontFamily: 'Georgia, serif', fontSize: 64, lineHeight: 1,
+        fontFamily: 'Georgia, serif', fontSize: 'clamp(40px, 8vw, 64px)', lineHeight: 1,
         color: 'var(--gold)', opacity: 0.5, display: 'block',
-        marginBottom: -16,
+        marginBottom: -10,
       }}>
         "
       </span>
 
       {/* Quote */}
       <p style={{
-        fontFamily: 'var(--serif)', fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
+        fontFamily: 'var(--serif)', fontSize: 'clamp(0.95rem, 1.8vw, 1.1rem)',
         fontWeight: 300, lineHeight: 1.75, color: 'var(--text)',
         fontStyle: 'italic', flexGrow: 1,
       }}>
@@ -79,15 +79,15 @@ function RefCard({ r, i }: { r: typeof REFS[0]; i: number }) {
       </p>
 
       {/* Attribution */}
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 18 }}>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 500, color: 'var(--text)', marginBottom: 3 }}>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 'clamp(13px, 1.5vw, 15px)', fontWeight: 500, color: 'var(--text)', marginBottom: 3 }}>
           {r.name}
         </p>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.06em', color: 'var(--muted)', marginBottom: 8 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.06em', color: 'var(--muted)', marginBottom: 6 }}>
           {r.title}
         </p>
         <p style={{
-          fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.28em',
+          fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.22em',
           textTransform: 'uppercase', color: 'var(--gold)',
         }}>
           {r.project}

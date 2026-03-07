@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import LogoIcon from './LogoIcon'
 
 const LINKS = [
-  { label: 'Projects', href: '#projects' },
-  { label: 'Services', href: '#services' },
-  { label: 'Studio',   href: '#studio' },
-  { label: 'Contact',  href: '#contact' },
+  { label: 'Projects',   href: '#projects' },
+  { label: 'Services',   href: '#services' },
+  { label: 'Team',       href: '#team' },
+  { label: 'References', href: '#references' },
+  { label: 'Studio',     href: '#studio' },
+  { label: 'Contact',    href: '#contact' },
 ]
 
 interface NavbarProps {
