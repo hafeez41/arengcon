@@ -7,6 +7,8 @@ import Projects from './components/Projects'
 import Services from './components/Services'
 import Studio from './components/Studio'
 import Contact from './components/Contact'
+import Team from './components/Team'
+import References from './components/References'
 import Footer from './components/Footer'
 import CustomCursor from './components/CustomCursor'
 
@@ -38,6 +40,8 @@ export default function App() {
               <Projects />
               <Services />
               <Studio />
+              <Team />
+              <References />
               <Contact />
             </main>
             <Footer />
