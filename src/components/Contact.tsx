@@ -9,17 +9,45 @@ const INPUT_STYLE: React.CSSProperties = {
   outline: 'none', transition: 'border-color 0.3s',
 }
 
+type Status = 'idle' | 'sending' | 'sent' | 'error'
+
 export default function Contact() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const [form, setForm] = useState({ name: '', email: '', message: '' })
-  const [sent, setSent] = useState(false)
+  const [status, setStatus] = useState<Status>('idle')
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderBottomColor = 'var(--gold)'
   }
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderBottomColor = 'var(--border)'
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStatus('sending')
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/guyworking2@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          message: form.message,
+          _subject: `New enquiry from ${form.name} — Arengcon`,
+          _template: 'table',
+        }),
+      })
+      const data = await res.json()
+      if (data.success === 'true' || data.success === true) {
+        setStatus('sent')
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
   }
 
   return (
@@ -62,13 +90,13 @@ export default function Contact() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 16 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3, duration: 0.55 }}>
-            {sent ? (
+            {status === 'sent' ? (
               <div style={{ paddingTop: 40 }}>
                 <p style={{ fontFamily: 'var(--serif)', fontSize: 32, fontWeight: 300, color: 'var(--text)', marginBottom: 10 }}>Thank you.</p>
                 <p style={{ fontFamily: 'var(--sans)', fontSize: 17, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
               </div>
             ) : (
-              <form onSubmit={e => { e.preventDefault(); setSent(true) }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
                 {([['name','text','Name','Your name'],['email','email','Email','your@email.com']] as [string,string,string,string][]).map(([id,type,label,ph]) => (
                   <div key={id}>
                     <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>{label}</p>
@@ -89,16 +117,33 @@ export default function Contact() {
                     style={{ ...INPUT_STYLE, resize: 'none', display: 'block' }}
                   />
                 </div>
-                <button type="submit" style={{
+
+                {status === 'error' && (
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: '#c0392b', letterSpacing: '0.05em' }}>
+                    Something went wrong — please try again or email us directly.
+                  </p>
+                )}
+
+                <button type="submit" disabled={status === 'sending'} style={{
                   padding: '14px 0', background: 'none',
                   border: '1px solid rgba(238,235,229,0.2)',
                   fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase',
-                  color: 'var(--text)', cursor: 'none', transition: 'all 0.3s',
+                  color: status === 'sending' ? 'var(--muted)' : 'var(--text)',
+                  cursor: status === 'sending' ? 'default' : 'none',
+                  transition: 'all 0.3s',
+                  opacity: status === 'sending' ? 0.6 : 1,
                 }}
-                  onMouseEnter={e => { const el = e.currentTarget; el.style.background = 'var(--gold)'; el.style.borderColor = 'var(--gold)'; el.style.color = 'var(--bg)'; }}
-                  onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'none'; el.style.borderColor = 'rgba(238,235,229,0.2)'; el.style.color = 'var(--text)'; }}
+                  onMouseEnter={e => {
+                    if (status === 'sending') return
+                    const el = e.currentTarget
+                    el.style.background = 'var(--gold)'; el.style.borderColor = 'var(--gold)'; el.style.color = 'var(--bg)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget
+                    el.style.background = 'none'; el.style.borderColor = 'rgba(238,235,229,0.2)'; el.style.color = 'var(--text)'
+                  }}
                 >
-                  Send Message
+                  {status === 'sending' ? 'Sending…' : 'Send Message'}
                 </button>
               </form>
             )}
