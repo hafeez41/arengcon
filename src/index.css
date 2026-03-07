@@ -43,14 +43,31 @@
 
 /* ─── Light mode overrides ───────────────────────────────────────── */
 html.light {
-  --bg:        #f5f2ed;
-  --surface:   #ece8e1;
-  --border:    rgba(0, 0, 0, 0.09);
-  --text:      #1a1a18;
-  --muted:     #6a6560;
-  --muted2:    #9a9690;
-  --gold:      #9e7840;          /* darker gold legible on light bg */
-  --gold-dim:  rgba(158, 120, 64, 0.1);
+  --bg:        #ddd6cb;          /* warm stone — not white, has real depth */
+  --surface:   #d0c9bc;          /* clearly distinct from bg */
+  --border:    rgba(0, 0, 0, 0.16);
+  --text:      #141410;          /* near-black, strong contrast */
+  --muted:     #4e4a44;          /* dark enough to read comfortably */
+  --muted2:    #7a7670;
+  --gold:      #7a5820;          /* rich amber, legible on warm bg */
+  --gold-dim:  rgba(122, 88, 32, 0.14);
+}
+
+/* Boost text weight & use subpixel rendering for light bg */
+html.light body {
+  font-weight: 400;
+  -webkit-font-smoothing: auto;
+}
+
+/* All weight-300 text bumped up so nothing disappears */
+html.light p,
+html.light h1,
+html.light h2,
+html.light h3,
+html.light span,
+html.light button,
+html.light a {
+  font-weight: 400;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────── */
