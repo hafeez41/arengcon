@@ -281,6 +281,14 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true)
+    // Delete images from storage
+    const toRemove = [p.img, ...(p.gallery ?? [])].filter(Boolean).map(url => {
+      const parts = url.split('/project-images/')
+      return parts.length > 1 ? parts[1] : null
+    }).filter(Boolean) as string[]
+    if (toRemove.length > 0) {
+      await supabase.storage.from('project-images').remove(toRemove)
+    }
     await supabase.from('projects').delete().eq('id', p.id)
     onDelete(p.id)
   }
@@ -416,6 +424,11 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true)
+    // Delete photo from storage (skip default placeholder)
+    if (m.image && m.image !== '/avatar-default.svg' && m.image.includes('/project-images/')) {
+      const path = m.image.split('/project-images/')[1]
+      if (path) await supabase.storage.from('project-images').remove([path])
+    }
     await supabase.from('team').delete().eq('id', m.id)
     onDelete(m.id)
   }
