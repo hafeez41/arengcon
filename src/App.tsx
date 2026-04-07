@@ -19,6 +19,7 @@ export default function App() {
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const [projectsKey, setProjectsKey] = useState(0)
+  const [teamKey, setTeamKey] = useState(0)
 
   // Sync class to <html> so CSS vars cascade everywhere
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function App() {
               <Hero />
               <Projects refreshKey={projectsKey} />
               <Services />
-              <Team />
+              <Team refreshKey={teamKey} />
               <References />
               <Studio />
               <Contact />
@@ -87,7 +88,7 @@ export default function App() {
         {adminOpen && (
           <AdminPanel
             onClose={() => setAdminOpen(false)}
-            onSaved={() => setProjectsKey(k => k + 1)}
+            onSaved={() => { setProjectsKey(k => k + 1); setTeamKey(k => k + 1) }}
           />
         )}
       </AnimatePresence>

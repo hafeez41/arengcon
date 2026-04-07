@@ -1,7 +1,15 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { supabase } from '../lib/supabase'
 
-const TEAM = [
+interface Member {
+  name: string
+  role: string
+  bio: string
+  image: string
+}
+
+const SAMPLE_TEAM: Member[] = [
   {
     name: 'Emeka Okafor',
     role: 'Founder & Principal Architect',
@@ -64,7 +72,21 @@ const TEAM = [
   },
 ]
 
-function Card({ m, i }: { m: typeof TEAM[0]; i: number }) {
+async function fetchFromSupabase(): Promise<Member[]> {
+  const { data, error } = await supabase
+    .from('team')
+    .select('*')
+    .order('created_at', { ascending: true })
+  if (error || !data || data.length === 0) return []
+  return data.map((r: any) => ({
+    name: r.name,
+    role: r.role,
+    bio: r.bio,
+    image: r.image || '/avatar-default.svg',
+  }))
+}
+
+function Card({ m, i }: { m: Member; i: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
   const [hovered, setHovered] = useState(false)
@@ -123,9 +145,16 @@ function Card({ m, i }: { m: typeof TEAM[0]; i: number }) {
   )
 }
 
-export default function Team() {
+export default function Team({ refreshKey = 0 }: { refreshKey?: number }) {
   const headRef = useRef<HTMLDivElement>(null)
   const inView = useInView(headRef, { once: true, margin: '-50px' })
+  const [members, setMembers] = useState<Member[]>(SAMPLE_TEAM)
+
+  useEffect(() => {
+    fetchFromSupabase().then(data => {
+      if (data.length > 0) setMembers(data)
+    })
+  }, [refreshKey])
 
   return (
     <section id="team" style={{ padding: 'clamp(64px, 8vw, 120px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
@@ -156,7 +185,7 @@ export default function Team() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(calc(50% - 12px), 160px), 1fr))',
           gap: 'clamp(16px, 2.5vw, 32px)',
         }}>
-          {TEAM.map((m, i) => <Card key={m.name} m={m} i={i} />)}
+          {members.map((m, i) => <Card key={m.name + i} m={m} i={i} />)}
         </div>
       </div>
     </section>
