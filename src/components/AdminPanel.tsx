@@ -17,12 +17,11 @@ interface TeamMember {
   image: string
 }
 
-const TYPES = ['Residential', 'Commercial', 'Cultural', 'Public', 'Mixed-Use', 'Hospitality']
+const TYPES = ['Construction', 'Architecture', 'Interior']
 
 const emptyProjectForm = {
   title: '', location: '', year: new Date().getFullYear().toString(),
-  category: 'Built' as 'Built' | 'Unbuilt',
-  type: 'Residential', area: '', duration: '',
+  type: 'Construction', area: '', duration: '',
   youtubeUrl: '', description: '',
 }
 
@@ -160,7 +159,7 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
 
       const { error: dbErr } = await supabase.from('projects').insert({
         title: form.title, location: form.location, year: form.year,
-        category: form.category, type: form.type,
+        category: 'Built', type: form.type,
         area: form.area || '—', duration: form.duration || '—',
         video_id: extractVideoId(form.youtubeUrl),
         img: imgUrl, description: form.description, gallery: galleryUrls,
@@ -193,12 +192,6 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
         <Field label="Type">
           <select style={inputStyle} value={form.type} onChange={e => set('type', e.target.value)}>
             {TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
-        </Field>
-        <Field label="Status">
-          <select style={inputStyle} value={form.category} onChange={e => set('category', e.target.value as any)}>
-            <option>Built</option>
-            <option>Unbuilt</option>
           </select>
         </Field>
         <Field label="Area (e.g. 850 sqm)">
@@ -300,7 +293,7 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
         <div style={{ minWidth: 0 }}>
           <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{p.title}</p>
           <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}>
-            {p.location} · {p.year} · {p.category} · {p.type}
+            {p.location} · {p.year} · {p.type}
           </p>
         </div>
       </div>

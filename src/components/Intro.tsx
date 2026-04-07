@@ -38,9 +38,9 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               initial={{ scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ color: 'var(--text)', marginBottom: 20 }}
+              style={{ color: 'var(--text)', marginBottom: 28 }}
             >
-              <LogoIcon style={{ width: 88, height: 88 }} />
+              <LogoIcon style={{ width: 160, height: 160 }} />
             </motion.div>
 
             {/* Company name */}
@@ -51,9 +51,9 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
                 transition={{ delay: 0.42, duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
                 style={{
                   fontFamily: 'var(--serif)',
-                  fontSize: 'clamp(3rem, 9vw, 6.5rem)',
-                  fontWeight: 300,
-                  letterSpacing: '0.2em',
+                  fontSize: 'clamp(3.8rem, 12vw, 9rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   color: 'var(--text)',
                   lineHeight: 1,
@@ -69,13 +69,13 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85, duration: 0.6 }}
               style={{
-                fontFamily: 'var(--sans)', fontWeight: 300,
-                fontSize: 11, letterSpacing: '0.42em',
+                fontFamily: 'var(--sans)', fontWeight: 500,
+                fontSize: 14, letterSpacing: '0.38em',
                 textTransform: 'uppercase', color: 'var(--muted)',
-                marginTop: 12,
+                marginTop: 18,
               }}
             >
-              Design &amp; Construction
+              A Design &amp; Construction Company
             </motion.p>
 
             {/* Progress line */}
@@ -84,7 +84,7 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.1, duration: 2.5, ease: 'linear' }}
               style={{
-                position: 'absolute', bottom: -40,
+                position: 'absolute', bottom: -48,
                 width: 120, height: 1,
                 background: 'var(--gold)',
                 transformOrigin: 'left',

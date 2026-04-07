@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import LogoIcon from './LogoIcon'
 
 export interface Project {
   id: number
@@ -92,37 +93,69 @@ export default function ProjectModal({ project, onClose }: Props) {
             }}
           >
             {/* Sticky header */}
-            <div style={{
-              position: 'sticky', top: 0, zIndex: 10,
-              background: 'var(--bg)',
-              borderBottom: '1px solid var(--border)',
-              padding: '16px clamp(24px, 5vw, 80px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-            }}>
-              <div>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 4 }}>
-                  {project.type} · {project.category} · {project.location} · {project.year}
+            <div className="modal-header">
+              {/* Left — logo + name (hidden on mobile) */}
+              <div className="modal-brand">
+                <LogoIcon style={{ width: 44, height: 44, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: 'var(--text)' }}>
+                  Arengcon
+                </span>
+              </div>
+
+              {/* Centre — project info */}
+              <div style={{ textAlign: 'center' as const, minWidth: 0 }}>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, fontWeight: 500, letterSpacing: '0.35em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 4 }}>
+                  {project.type} · {project.location} · {project.year}
                 </p>
-                <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)' }}>
+                <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1rem, 2.5vw, 1.8rem)', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {project.title}
                 </h2>
               </div>
-              <button
-                onClick={onClose}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: 'none', border: '1px solid var(--border)',
-                  padding: '9px 18px', cursor: 'none',
-                  fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
-                  textTransform: 'uppercase' as const, color: 'var(--muted)',
-                  flexShrink: 0, transition: 'all 0.25s',
-                }}
-                onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--text)'; el.style.color = 'var(--text)'; }}
-                onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.color = 'var(--muted)'; }}
-              >
-                <CloseIcon /> Close
-              </button>
+
+              {/* Right — close */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: 'none', border: '1px solid var(--border)',
+                    padding: '9px 18px', cursor: 'none',
+                    fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+                    textTransform: 'uppercase' as const, color: 'var(--muted)',
+                    flexShrink: 0, transition: 'all 0.25s',
+                  }}
+                  onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--text)'; el.style.color = 'var(--text)'; }}
+                  onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.color = 'var(--muted)'; }}
+                >
+                  <CloseIcon /> Close
+                </button>
+              </div>
             </div>
+
+            <style>{`
+              .modal-header {
+                position: sticky; top: 0; z-index: 10;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                padding: 14px clamp(16px, 5vw, 80px);
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                gap: 12px;
+              }
+              .modal-brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              }
+              @media (max-width: 600px) {
+                .modal-header {
+                  grid-template-columns: auto 1fr;
+                  padding: 12px 16px;
+                }
+                .modal-brand { display: none; }
+              }
+            `}</style>
 
             {/* Scrollable content */}
             <div style={{ padding: '0 clamp(24px, 5vw, 80px) clamp(40px, 6vw, 72px)' }}>

@@ -8,7 +8,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 1,
     title: 'Lagoon Residence',
     location: 'Lagos', year: '2024',
-    category: 'Built', type: 'Residential',
+    category: 'Built', type: 'Architecture',
     area: '850 sqm', duration: '18 months',
     videoId: '',   // ← paste a YouTube video ID here when available
     img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=900&q=80&auto=format&fit=crop',
@@ -23,7 +23,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 2,
     title: 'Abuja Commercial Hub',
     location: 'Abuja', year: '2023',
-    category: 'Built', type: 'Commercial',
+    category: 'Built', type: 'Construction',
     area: '4 200 sqm', duration: '28 months',
     videoId: '',
     img: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=80&auto=format&fit=crop',
@@ -38,7 +38,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 3,
     title: 'Savanna Cultural Centre',
     location: 'Kaduna', year: '2025',
-    category: 'Unbuilt', type: 'Cultural',
+    category: 'Unbuilt', type: 'Architecture',
     area: '2 600 sqm', duration: '—',
     videoId: '',
     img: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?w=900&q=80&auto=format&fit=crop',
@@ -52,7 +52,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 4,
     title: 'Eko Tower',
     location: 'Lagos', year: '2022',
-    category: 'Built', type: 'Commercial',
+    category: 'Built', type: 'Construction',
     area: '12 000 sqm', duration: '36 months',
     videoId: '',
     img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=900&q=80&auto=format&fit=crop',
@@ -67,7 +67,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 5,
     title: 'Hilltop Retreat',
     location: 'Plateau State', year: '2024',
-    category: 'Built', type: 'Residential',
+    category: 'Built', type: 'Interior',
     area: '620 sqm', duration: '14 months',
     videoId: '',
     img: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=900&q=80&auto=format&fit=crop',
@@ -81,7 +81,7 @@ const SAMPLE_PROJECTS: Project[] = [
     id: 6,
     title: 'Marina Pavilion',
     location: 'Port Harcourt', year: '2025',
-    category: 'Unbuilt', type: 'Public',
+    category: 'Unbuilt', type: 'Interior',
     area: '1 100 sqm', duration: '—',
     videoId: '',
     img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80&auto=format&fit=crop',
@@ -93,8 +93,8 @@ const SAMPLE_PROJECTS: Project[] = [
   },
 ]
 
-type Filter = 'All' | 'Built' | 'Unbuilt'
-const FILTERS: Filter[] = ['All', 'Built', 'Unbuilt']
+type Filter = 'All' | 'Construction' | 'Architecture' | 'Interior'
+const FILTERS: Filter[] = ['All', 'Construction', 'Architecture', 'Interior']
 
 async function fetchFromSupabase(): Promise<Project[]> {
   const { data, error } = await supabase
@@ -117,9 +117,9 @@ async function fetchFromSupabase(): Promise<Project[]> {
 function Badge({ label, gold }: { label: string; gold?: boolean }) {
   return (
     <span style={{
-      fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.32em',
+      fontFamily: 'var(--sans)', fontSize: 10, fontWeight: 600, letterSpacing: '0.28em',
       textTransform: 'uppercase' as const,
-      padding: '4px 10px',
+      padding: '5px 12px',
       border: `1px solid ${gold ? 'rgba(196,168,119,0.75)' : 'rgba(255,255,255,0.22)'}`,
       color: gold ? '#c4a877' : '#eeebe5',
       background: 'rgba(10,10,8,0.68)',
@@ -152,7 +152,6 @@ function Card({ p, i, onOpen }: { p: Project; i: number; onOpen: (p: Project) =>
         {/* Badges — top-left */}
         <div style={{ position: 'absolute', top: 14, left: 14, display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
           <Badge label={p.type} />
-          <Badge label={p.category} gold={p.category === 'Built'} />
         </div>
 
         {/* Hover overlay with open hint */}
@@ -200,14 +199,14 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
     })
   }, [refreshKey])
 
-  const shown = filter === 'All' ? projects : projects.filter(p => p.category === filter)
+  const shown = filter === 'All' ? projects : projects.filter(p => p.type === filter)
 
   return (
     <>
       <section id="projects" style={{ padding: 'clamp(64px, 8vw, 120px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)' }}>
 
         {/* Header */}
-        <div ref={headRef} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 24, marginBottom: 'clamp(40px, 6vw, 72px)' }}>
+        <div ref={headRef} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 24, marginBottom: 'clamp(40px, 6vw, 72px)' }}>
           <div>
             <motion.p
               initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
@@ -229,15 +228,16 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
 
           <motion.div
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.2, duration: 0.5 }}
-            style={{ display: 'flex', gap: 4 }}
+            className="filter-bar"
           >
             {FILTERS.map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
+                className="filter-btn"
                 style={{
-                  padding: '8px 18px', cursor: 'none',
-                  fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase' as const,
+                  cursor: 'none',
+                  fontFamily: 'var(--sans)', fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase' as const,
                   border: '1px solid',
                   borderColor: filter === f ? 'var(--gold)' : 'var(--border)',
                   background: filter === f ? 'var(--gold)' : 'transparent',
@@ -265,6 +265,28 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
 
         <style>{`
           .img-zoom:hover .card-overlay { opacity: 1 !important; }
+
+          .filter-bar {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+          }
+          .filter-btn {
+            padding: 11px 24px;
+          }
+
+          @media (max-width: 600px) {
+            .filter-bar {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              width: 100%;
+            }
+            .filter-btn {
+              padding: 12px 8px;
+              font-size: 10px !important;
+              letter-spacing: 0.18em !important;
+            }
+          }
         `}</style>
       </section>
 

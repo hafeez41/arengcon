@@ -62,9 +62,9 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
         transition={{ delay: 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
       >
         {/* Logo */}
-        <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
-          <LogoIcon style={{ width: 40, height: 40 }} />
-          <span style={{ fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>Arengcon</span>
+        <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
+          <LogoIcon style={{ width: 44, height: 44 }} />
+          <span style={{ fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'var(--text)' }}>Arengcon</span>
         </button>
 
         {/* Desktop nav + toggle */}
@@ -72,7 +72,7 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
           <nav style={{ display: 'flex', gap: 32, alignItems: 'center' }} className="desktop-nav">
             {LINKS.map(l => (
               <button key={l.href} onClick={() => go(l.href)} className="link-slide"
-                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--muted)', transition: 'color 0.3s' }}
+                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--muted)', transition: 'color 0.3s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
               >{l.label}</button>
