@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 
 interface Member {
@@ -86,7 +86,119 @@ async function fetchFromSupabase(): Promise<Member[]> {
   }))
 }
 
-function Card({ m, i }: { m: Member; i: number }) {
+/* ── Member Modal ─────────────────────────────────────────────────── */
+function MemberModal({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', fn)
+    return () => window.removeEventListener('keydown', fn)
+  }, [onClose])
+
+  useEffect(() => {
+    if (member) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [member])
+
+  return (
+    <AnimatePresence>
+      {member && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="backdrop"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+          />
+
+          {/* Slide-up panel */}
+          <motion.div
+            key="panel"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+            style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 61,
+              background: 'var(--bg)',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              borderTop: '1px solid var(--border)',
+            }}
+          >
+            {/* Sticky header */}
+            <div style={{
+              position: 'sticky', top: 0, zIndex: 10,
+              background: 'var(--bg)',
+              borderBottom: '1px solid var(--border)',
+              padding: '16px clamp(24px, 5vw, 80px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+            }}>
+              <div>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 4 }}>
+                  {member.role}
+                </p>
+                <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)' }}>
+                  {member.name}
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: 'none', border: '1px solid var(--border)',
+                  padding: '9px 18px', cursor: 'none',
+                  fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+                  textTransform: 'uppercase', color: 'var(--muted)',
+                  flexShrink: 0, transition: 'all 0.25s',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--text)'; el.style.color = 'var(--text)'; }}
+                onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.color = 'var(--muted)'; }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+                Close
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '0 clamp(24px, 5vw, 80px) clamp(40px, 6vw, 72px)' }}>
+              <div style={{ display: 'flex', gap: 'clamp(24px, 4vw, 64px)', flexWrap: 'wrap', marginTop: 40 }}>
+                {/* Photo */}
+                <div style={{ flexShrink: 0, width: 'clamp(140px, 20vw, 220px)', aspectRatio: '1/1', overflow: 'hidden', background: 'var(--surface)' }}>
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }}
+                  />
+                </div>
+
+                {/* Bio */}
+                <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.38em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>About</p>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 300, lineHeight: 1.9, color: 'var(--text)' }}>
+                    {member.bio}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+/* ── Card ─────────────────────────────────────────────────────────── */
+function Card({ m, i, onClick }: { m: Member; i: number; onClick: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
   const [hovered, setHovered] = useState(false)
@@ -97,6 +209,7 @@ function Card({ m, i }: { m: Member; i: number }) {
       initial={{ opacity: 0, y: 24 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: (i % 5) * 0.07 }}
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{ cursor: 'none' }}
@@ -112,17 +225,16 @@ function Card({ m, i }: { m: Member; i: number }) {
             transition: 'transform 0.55s ease',
           }}
         />
-        {/* Bio overlay */}
+        {/* Hover hint */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'rgba(12,12,10,0.88)',
-          padding: 16,
-          display: 'flex', alignItems: 'flex-end',
+          background: 'rgba(12,12,10,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           opacity: hovered ? 1 : 0,
           transition: 'opacity 0.35s ease',
         }}>
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 300, lineHeight: 1.6, color: 'var(--muted)' }}>
-            {m.bio}
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--text)' }}>
+            View Profile
           </p>
         </div>
       </div>
@@ -145,10 +257,12 @@ function Card({ m, i }: { m: Member; i: number }) {
   )
 }
 
+/* ── Section ──────────────────────────────────────────────────────── */
 export default function Team({ refreshKey = 0 }: { refreshKey?: number }) {
   const headRef = useRef<HTMLDivElement>(null)
   const inView = useInView(headRef, { once: true, margin: '-50px' })
   const [members, setMembers] = useState<Member[]>(SAMPLE_TEAM)
+  const [selected, setSelected] = useState<Member | null>(null)
 
   useEffect(() => {
     fetchFromSupabase().then(data => {
@@ -179,15 +293,19 @@ export default function Team({ refreshKey = 0 }: { refreshKey?: number }) {
           </div>
         </div>
 
-        {/* Grid — 2 cols on mobile, scales up to 5 on desktop */}
+        {/* Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(calc(50% - 12px), 160px), 1fr))',
           gap: 'clamp(16px, 2.5vw, 32px)',
         }}>
-          {members.map((m, i) => <Card key={m.name + i} m={m} i={i} />)}
+          {members.map((m, i) => (
+            <Card key={m.name + i} m={m} i={i} onClick={() => setSelected(m)} />
+          ))}
         </div>
       </div>
+
+      <MemberModal member={selected} onClose={() => setSelected(null)} />
     </section>
   )
 }
