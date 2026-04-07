@@ -40,7 +40,7 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ color: 'var(--text)', marginBottom: 20 }}
             >
-              <LogoIcon style={{ width: 130, height: 130 }} />
+              <LogoIcon style={{ width: 88, height: 88 }} />
             </motion.div>
 
             {/* Company name */}
@@ -50,10 +50,10 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
                 animate={{ y: 0 }}
                 transition={{ delay: 0.42, duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
                 style={{
-                  fontFamily: 'var(--display)',
-                  fontSize: 'clamp(3.5rem, 11vw, 8.5rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.22em',
+                  fontFamily: 'var(--serif)',
+                  fontSize: 'clamp(3rem, 9vw, 6.5rem)',
+                  fontWeight: 300,
+                  letterSpacing: '0.2em',
                   textTransform: 'uppercase',
                   color: 'var(--text)',
                   lineHeight: 1,
@@ -69,13 +69,13 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85, duration: 0.6 }}
               style={{
-                fontFamily: 'var(--sans)', fontWeight: 400,
-                fontSize: 12, letterSpacing: '0.44em',
+                fontFamily: 'var(--sans)', fontWeight: 300,
+                fontSize: 11, letterSpacing: '0.42em',
                 textTransform: 'uppercase', color: 'var(--muted)',
-                marginTop: 16,
+                marginTop: 12,
               }}
             >
-              A Design &amp; Construction Company
+              Design &amp; Construction
             </motion.p>
 
             {/* Progress line */}

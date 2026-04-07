@@ -62,11 +62,9 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
         transition={{ delay: 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
       >
         {/* Logo */}
-        <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
-          <div style={{ border: '1px solid var(--border)', padding: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <LogoIcon style={{ width: 46, height: 46 }} />
-          </div>
-          <span style={{ fontFamily: 'var(--serif)', fontSize: 17, letterSpacing: '0.16em', textTransform: 'uppercase' as const, fontWeight: 600 }}>Arengcon</span>
+        <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
+          <LogoIcon style={{ width: 40, height: 40 }} />
+          <span style={{ fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>Arengcon</span>
         </button>
 
         {/* Desktop nav + toggle */}

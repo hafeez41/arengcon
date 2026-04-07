@@ -173,7 +173,7 @@ function Card({ p, i, onOpen }: { p: Project; i: number; onOpen: (p: Project) =>
       {/* Text */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
-          <h3 style={{ fontFamily: 'var(--serif)', fontSize: 25, fontWeight: 400, color: 'var(--text)', lineHeight: 1.2 }}>
+          <h3 style={{ fontFamily: 'var(--serif)', fontSize: 21, fontWeight: 300, color: 'var(--text)', lineHeight: 1.2 }}>
             {p.title}
           </h3>
           <span style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--muted)', flexShrink: 0, marginLeft: 8 }}>{p.year}</span>
@@ -220,7 +220,7 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
               <motion.h2
                 initial={{ y: '110%' }} animate={inView ? { y: 0 } : {}}
                 transition={{ duration: 0.65, ease: [0.76, 0, 0.24, 1] }}
-                style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2.4rem, 5.5vw, 4.5rem)', fontWeight: 400, color: 'var(--text)', lineHeight: 1.1 }}
+                style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 4.5vw, 3.5rem)', fontWeight: 300, color: 'var(--text)', lineHeight: 1.1 }}
               >
                 Our projects span <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>typologies</em> &amp; locations
               </motion.h2>
@@ -236,7 +236,7 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
                 key={f}
                 onClick={() => setFilter(f)}
                 style={{
-                  padding: '10px 22px', cursor: 'none',
+                  padding: '8px 18px', cursor: 'none',
                   fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase' as const,
                   border: '1px solid',
                   borderColor: filter === f ? 'var(--gold)' : 'var(--border)',
