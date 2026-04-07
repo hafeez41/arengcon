@@ -89,7 +89,7 @@ export default function Hero() {
           className="hero-stats"
           style={{ position: 'relative', zIndex: 1, borderTop: '1px solid var(--border)', background: 'rgba(12,12,10,0.85)', backdropFilter: 'blur(16px)' }}
         >
-          {STATS.map((s, i) => (
+          {STATS.map((s) => (
             <div key={s.label} className="hero-stat-cell" style={{ padding: 'clamp(12px,1.8vw,18px) 8px', textAlign: 'center' as const, borderRight: '1px solid var(--border)' }}>
               <p style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(18px, 2.2vw, 24px)', fontWeight: 600, color: 'var(--text)', lineHeight: 1 }}>{s.num}</p>
               <p style={{ fontFamily: 'var(--sans)', fontSize: 'clamp(8px, 0.85vw, 11px)', fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginTop: 5 }}>{s.label}</p>
