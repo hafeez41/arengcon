@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import ProjectModal, { type Project } from './ProjectModal'
+import { supabase } from '../lib/supabase'
 
-const PROJECTS: Project[] = [
+const SAMPLE_PROJECTS: Project[] = [
   {
     id: 1,
     title: 'Lagoon Residence',
@@ -95,6 +96,20 @@ const PROJECTS: Project[] = [
 type Filter = 'All' | 'Built' | 'Unbuilt'
 const FILTERS: Filter[] = ['All', 'Built', 'Unbuilt']
 
+async function fetchFromSupabase(): Promise<Project[]> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error || !data || data.length === 0) return []
+  return data.map((r: any) => ({
+    id: Number(r.id), title: r.title, location: r.location, year: r.year,
+    category: r.category, type: r.type, img: r.img, description: r.description,
+    area: r.area ?? '—', duration: r.duration ?? '—',
+    videoId: r.video_id ?? '', gallery: r.gallery ?? [],
+  }))
+}
+
 /* ─── Badge ──────────────────────────────────────────────────────── */
 /* Badges sit on top of images so we never use theme CSS vars here — */
 /* hardcoded dark overlay + light text works on any image in any     */
@@ -172,13 +187,20 @@ function Card({ p, i, onOpen }: { p: Project; i: number; onOpen: (p: Project) =>
 }
 
 /* ─── Section ────────────────────────────────────────────────────── */
-export default function Projects() {
+export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
   const [filter, setFilter] = useState<Filter>('All')
   const [activeProject, setActiveProject] = useState<Project | null>(null)
+  const [projects, setProjects] = useState<Project[]>(SAMPLE_PROJECTS)
   const headRef = useRef<HTMLDivElement>(null)
   const inView = useInView(headRef, { once: true, margin: '-50px' })
 
-  const shown = filter === 'All' ? PROJECTS : PROJECTS.filter(p => p.category === filter)
+  useEffect(() => {
+    fetchFromSupabase().then(data => {
+      if (data.length > 0) setProjects(data)
+    })
+  }, [refreshKey])
+
+  const shown = filter === 'All' ? projects : projects.filter(p => p.category === filter)
 
   return (
     <>
