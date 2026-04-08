@@ -29,15 +29,6 @@ export default function Hero() {
 
         <div style={{ padding: '36px clamp(24px, 5vw, 80px) 0' }}>
 
-          {/* Est. label */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.1 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
-            <span style={{ width: 28, height: 1, background: 'var(--gold)', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--sans)', fontSize: 'clamp(10px, 1.2vw, 13px)', fontWeight: 600, letterSpacing: '0.44em', textTransform: 'uppercase' as const, color: 'var(--gold)' }}>
-              Est. 2024 · Nigeria
-            </span>
-          </motion.div>
-
           {/* H1 */}
           <div className="heading-clip">
             <motion.h1

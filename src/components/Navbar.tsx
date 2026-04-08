@@ -34,10 +34,10 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
   const navStyle: React.CSSProperties = {
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: scrolled ? '14px clamp(24px, 5vw, 80px)' : '22px clamp(24px, 5vw, 80px)',
-    background: scrolled ? 'color-mix(in srgb, var(--bg) 90%, transparent)' : 'transparent',
-    backdropFilter: scrolled ? 'blur(18px)' : 'none',
-    borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+    padding: '14px clamp(24px, 5vw, 80px)',
+    background: 'color-mix(in srgb, var(--bg) 90%, transparent)',
+    backdropFilter: 'blur(18px)',
+    borderBottom: '1px solid var(--border)',
     transition: 'all 0.4s cubic-bezier(0.25,0.46,0.45,0.94)',
   }
 
@@ -64,7 +64,10 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
         {/* Logo */}
         <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
           <LogoIcon style={{ width: 132, height: 132 }} />
-          <span style={{ fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'var(--text)' }}>Arengcon</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+            <span style={{ fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'var(--text)' }}>Arengcon</span>
+            <span style={{ fontFamily: 'var(--sans)', fontSize: 10, fontWeight: 600, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--gold)' }}>Est. 2013 · Nigeria</span>
+          </div>
         </button>
 
         {/* Desktop nav + toggle */}

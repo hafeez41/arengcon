@@ -180,14 +180,6 @@ html.light .cur-ring {
 
 /* ─── Navbar transparent state always dark ───────────────────────── */
 /* When the navbar has no background (not scrolled) it floats over   */
-/* the dark hero image, so text/logo must stay light in both themes. */
-/* Once scrolled ([data-scrolled] is present) it adopts the theme.   */
-html.light header:not([data-scrolled]) {
-  --text:   #eeebe5;
-  --muted:  #9a9690;
-  --gold:   #c4a877;
-  --border: rgba(255, 255, 255, 0.12);
-}
 
 /* ─── Theme toggle button ────────────────────────────────────────── */
 .theme-toggle {
