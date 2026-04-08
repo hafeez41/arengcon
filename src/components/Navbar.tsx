@@ -105,7 +105,7 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
             {LINKS.map((l, i) => (
               <motion.button key={l.href} onClick={() => go(l.href)}
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.07 }}
-                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--serif)', fontSize: 'clamp(1.6rem, 5vw, 2.4rem)', fontWeight: 300, color: 'var(--text)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 'clamp(1.6rem, 5vw, 2.4rem)', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.28em', textTransform: 'uppercase' as const }}>
                 {l.label}
               </motion.button>
             ))}
