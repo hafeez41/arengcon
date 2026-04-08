@@ -63,7 +63,7 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
       >
         {/* Logo */}
         <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
-          <LogoIcon style={{ width: 44, height: 44 }} />
+          <LogoIcon style={{ width: 132, height: 132 }} />
           <span style={{ fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'var(--text)' }}>Arengcon</span>
         </button>
 
@@ -72,9 +72,9 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
           <nav style={{ display: 'flex', gap: 32, alignItems: 'center' }} className="desktop-nav">
             {LINKS.map(l => (
               <button key={l.href} onClick={() => go(l.href)} className="link-slide"
-                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--muted)', transition: 'color 0.3s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+                style={{ background: 'none', border: 'none', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--text)', transition: 'color 0.3s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text)')}
               >{l.label}</button>
             ))}
           </nav>

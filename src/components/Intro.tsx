@@ -40,7 +40,7 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ color: 'var(--text)', marginBottom: 28 }}
             >
-              <LogoIcon style={{ width: 160, height: 160 }} />
+              <LogoIcon style={{ width: 320, height: 320 }} />
             </motion.div>
 
             {/* Company name */}
