@@ -62,7 +62,7 @@ function RefCard({ r, i }: { r: typeof REFS[0]; i: number }) {
     >
       {/* Opening quote mark */}
       <span style={{
-        fontFamily: 'Georgia, serif', fontSize: 'clamp(40px, 8vw, 64px)', lineHeight: 1,
+        fontFamily: 'var(--serif)', fontSize: 'clamp(40px, 8vw, 64px)', lineHeight: 1,
         color: 'var(--gold)', opacity: 0.5, display: 'block',
         marginBottom: -10,
       }}>
