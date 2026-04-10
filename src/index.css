@@ -53,9 +53,8 @@ html.light {
   --gold-dim:  rgba(122, 88, 32, 0.14);
 }
 
-/* Boost text weight & use subpixel rendering for light bg */
+/* Subpixel rendering for light bg */
 html.light body {
-  font-weight: 400;
   -webkit-font-smoothing: auto;
 }
 
