@@ -1,28 +1,27 @@
 @import "tailwindcss";
 
-/*
-  ── Fonts ───────────────────────────────────────────────────────────
-  Primary: Bank Gothic (commercial – add the .woff2 file to /public/fonts/
-           and uncomment the @font-face below to activate it)
-  Fallback: Rajdhani (Google Fonts – geometric, condensed, similar feel)
-
-  @font-face {
-    font-family: 'Bank Gothic';
-    src: url('/fonts/BankGothic-Light.woff2') format('woff2'),
-         url('/fonts/BankGothic-Light.woff')  format('woff');
-    font-weight: 300;
-    font-style:  normal;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Bank Gothic';
-    src: url('/fonts/BankGothic-Medium.woff2') format('woff2'),
-         url('/fonts/BankGothic-Medium.woff')  format('woff');
-    font-weight: 400 500;
-    font-style:  normal;
-    font-display: swap;
-  }
-*/
+/* ── Bank Gothic ─────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Bank Gothic';
+  src: url('/fonts/BankGothic-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bank Gothic';
+  src: url('/fonts/BankGothic-Medium.ttf') format('truetype');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bank Gothic';
+  src: url('/fonts/BankGothic-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ─── Dark mode tokens (default) ─────────────────────────────────── */
 :root {
