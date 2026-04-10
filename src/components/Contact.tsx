@@ -12,6 +12,7 @@ const INPUT_STYLE: React.CSSProperties = {
 
 const DEFAULTS = {
   email1: 'info@arengcon.com',
+  email2: 'projects@arengcon.com',
   phone: '+234 000 000 0000',
   location: 'Lagos, Nigeria',
   hours: 'Mon – Fri, 9am – 6pm',
@@ -90,8 +91,12 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: 'clamp(40px, 6vw, 96px)' }}>
 
           <motion.div initial={{ opacity: 0, x: -16 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.2, duration: 0.55 }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <div>
+              <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>Email</p>
+              <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{info.email1}</p>
+              {info.email2 && <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)', marginTop: 4 }}>{info.email2}</p>}
+            </div>
             {[
-              { label: 'Email',  val: info.email1 },
               { label: 'Phone',  val: info.phone },
               { label: 'Studio', val: info.location },
               { label: 'Hours',  val: info.hours },
