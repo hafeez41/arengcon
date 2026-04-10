@@ -17,6 +17,14 @@ interface TeamMember {
   image: string
 }
 
+interface Reference {
+  id: number
+  name: string
+  title: string
+  project: string
+  quote: string
+}
+
 const TYPES = ['Construction', 'Architecture', 'Interior']
 
 const emptyProjectForm = {
@@ -26,6 +34,8 @@ const emptyProjectForm = {
 }
 
 const emptyTeamForm = { name: '', role: '', bio: '' }
+
+const emptyRefForm = { name: '', title: '', project: '', quote: '' }
 
 /* ── shared helpers ───────────────────────────────────────────────── */
 
@@ -92,15 +102,17 @@ function Login({ onLogin }: { onLogin: (s: Session) => void }) {
 }
 
 /* ── Tab bar ──────────────────────────────────────────────────────── */
-type Tab = 'projects' | 'team'
+type Tab = 'projects' | 'team' | 'references' | 'contact'
 
 function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'projects', label: 'Projects' },
-    { id: 'team',     label: 'Team' },
+    { id: 'projects',   label: 'Projects' },
+    { id: 'team',       label: 'Team' },
+    { id: 'references', label: 'References' },
+    { id: 'contact',    label: 'Contact' },
   ]
   return (
-    <div style={{ display: 'flex', gap: 4, marginBottom: 40 }}>
+    <div style={{ display: 'flex', gap: 4, marginBottom: 40, flexWrap: 'wrap' }}>
       {tabs.map(t => (
         <button
           key={t.id}
@@ -274,7 +286,6 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true)
-    // Delete images from storage
     const toRemove = [p.img, ...(p.gallery ?? [])].filter(Boolean).map(url => {
       const parts = url.split('/project-images/')
       return parts.length > 1 ? parts[1] : null
@@ -417,7 +428,6 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true)
-    // Delete photo from storage (skip default placeholder)
     if (m.image && m.image !== '/avatar-default.svg' && m.image.includes('/project-images/')) {
       const path = m.image.split('/project-images/')[1]
       if (path) await supabase.storage.from('project-images').remove([path])
@@ -459,6 +469,220 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
   )
 }
 
+/* ── Ref Form ─────────────────────────────────────────────────────── */
+function RefForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState(emptyRefForm)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof emptyRefForm, val: string) =>
+    setForm(f => ({ ...f, [key]: val }))
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true); setError('')
+    try {
+      const { error: dbErr } = await supabase.from('client_references').insert({
+        name: form.name,
+        title: form.title || null,
+        project: form.project || null,
+        quote: form.quote || null,
+      })
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong.')
+      setSaving(false)
+    }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 90 }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Name *">
+          <input style={inputStyle} value={form.name} onChange={e => set('name', e.target.value)} required />
+        </Field>
+        <Field label="Title / Company">
+          <input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)}
+            placeholder="e.g. Managing Director or Acme Ltd" />
+        </Field>
+      </div>
+
+      <Field label="Project">
+        <input style={inputStyle} value={form.project} onChange={e => set('project', e.target.value)}
+          placeholder="e.g. Lekki Tower" />
+      </Field>
+
+      <Field label="Quote">
+        <textarea style={ta} value={form.quote} onChange={e => set('quote', e.target.value)}
+          placeholder="Leave blank if no testimonial quote" />
+      </Field>
+
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving} style={{
+          padding: '12px 32px', background: 'var(--gold)', border: 'none',
+          fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+          textTransform: 'uppercase', color: 'var(--bg)',
+          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+        }}>
+          {saving ? 'Saving…' : 'Save Reference'}
+        </button>
+        <button type="button" onClick={onCancel} style={{
+          padding: '12px 24px', background: 'none',
+          border: '1px solid var(--border)', fontFamily: 'var(--sans)',
+          fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase',
+          color: 'var(--muted)', cursor: 'none',
+        }}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/* ── Ref Row ──────────────────────────────────────────────────────── */
+function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void }) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const del = async () => {
+    setDeleting(true)
+    await supabase.from('client_references').delete().eq('id', r.id)
+    onDelete(r.id)
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{r.name}</p>
+        {r.title && (
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.06em', marginBottom: 2 }}>
+            {r.title}
+          </p>
+        )}
+        {r.project && (
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
+            {r.project}
+          </p>
+        )}
+      </div>
+      {confirming ? (
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
+            {deleting ? '…' : 'Confirm'}
+          </button>
+          <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
+          Delete
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ── Contact Form ─────────────────────────────────────────────────── */
+function ContactForm({ onSaved }: { onSaved: () => void }) {
+  const [form, setForm] = useState({
+    email1: '', email2: '', phone: '',
+    location: '', hours: '', instagram: '', linkedin: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    supabase.from('site_settings').select('key, value').then(({ data }) => {
+      if (!data) return
+      setForm(prev => {
+        const next = { ...prev }
+        data.forEach((row: { key: string; value: string }) => {
+          if (row.key in next) (next as any)[row.key] = row.value
+        })
+        return next
+      })
+    })
+  }, [])
+
+  const set = (key: keyof typeof form, val: string) =>
+    setForm(f => ({ ...f, [key]: val }))
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true); setError(''); setSuccess(false)
+    try {
+      const rows = Object.entries(form).map(([key, value]) => ({ key, value }))
+      const { error: dbErr } = await supabase
+        .from('site_settings')
+        .upsert(rows, { onConflict: 'key' })
+      if (dbErr) throw dbErr
+      setSuccess(true)
+      onSaved()
+      setTimeout(() => setSuccess(false), 3000)
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Email 1">
+          <input style={inputStyle} value={form.email1} onChange={e => set('email1', e.target.value)} placeholder="info@example.com" />
+        </Field>
+        <Field label="Email 2">
+          <input style={inputStyle} value={form.email2} onChange={e => set('email2', e.target.value)} placeholder="projects@example.com" />
+        </Field>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Phone">
+          <input style={inputStyle} value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+234 000 000 0000" />
+        </Field>
+        <Field label="Location">
+          <input style={inputStyle} value={form.location} onChange={e => set('location', e.target.value)} placeholder="Lagos, Nigeria" />
+        </Field>
+      </div>
+
+      <Field label="Hours">
+        <input style={inputStyle} value={form.hours} onChange={e => set('hours', e.target.value)} placeholder="Mon – Fri, 9am – 6pm" />
+      </Field>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Instagram URL">
+          <input style={inputStyle} value={form.instagram} onChange={e => set('instagram', e.target.value)} placeholder="https://instagram.com/..." />
+        </Field>
+        <Field label="LinkedIn URL">
+          <input style={inputStyle} value={form.linkedin} onChange={e => set('linkedin', e.target.value)} placeholder="https://linkedin.com/..." />
+        </Field>
+      </div>
+
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+      {success && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: 'var(--gold)' }}>Settings saved.</p>}
+
+      <div style={{ paddingTop: 8 }}>
+        <button type="submit" disabled={saving} style={{
+          padding: '12px 32px', background: 'var(--gold)', border: 'none',
+          fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+          textTransform: 'uppercase', color: 'var(--bg)',
+          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+        }}>
+          {saving ? 'Saving…' : 'Save Settings'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
 /* ── Main AdminPanel ──────────────────────────────────────────────── */
 export default function AdminPanel({ onClose, onSaved }: Props) {
   const [session, setSession] = useState<Session | null>(null)
@@ -473,6 +697,11 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [addingMember, setAddingMember] = useState(false)
   const [loadingMembers, setLoadingMembers] = useState(true)
+
+  // References state
+  const [refs, setRefs] = useState<Reference[]>([])
+  const [addingRef, setAddingRef] = useState(false)
+  const [loadingRefs, setLoadingRefs] = useState(true)
 
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -513,8 +742,16 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
     setLoadingMembers(false)
   }
 
+  // Fetch references
+  const fetchRefs = async () => {
+    setLoadingRefs(true)
+    const { data } = await supabase.from('client_references').select('*').order('created_at', { ascending: true })
+    if (data) setRefs(data.map((r: any) => ({ id: r.id, name: r.name, title: r.title || '', project: r.project || '', quote: r.quote || '' })))
+    setLoadingRefs(false)
+  }
+
   useEffect(() => {
-    if (session) { fetchProjects(); fetchMembers() }
+    if (session) { fetchProjects(); fetchMembers(); fetchRefs() }
   }, [session])
 
   // ESC to close
@@ -552,10 +789,23 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
     onSaved()
   }
 
+  const handleRefSaved = () => {
+    setAddingRef(false)
+    fetchRefs()
+    onSaved()
+  }
+
+  const handleRefDelete = (id: number) => {
+    setRefs(rs => rs.filter(r => r.id !== id))
+    onSaved()
+  }
+
   const logout = async () => {
     await supabase.auth.signOut()
     setSession(null)
   }
+
+  const atRefLimit = refs.length >= 6
 
   return (
     <motion.div
@@ -603,6 +853,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
               setActiveTab(tab)
               setAddingProject(false)
               setAddingMember(false)
+              setAddingRef(false)
             }} />
 
             {/* ── PROJECTS TAB ── */}
@@ -675,6 +926,65 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                   </div>
                 </>
               )
+            )}
+
+            {/* ── REFERENCES TAB ── */}
+            {activeTab === 'references' && (
+              addingRef ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Reference</em>
+                  </h2>
+                  <RefForm onSaved={handleRefSaved} onCancel={() => setAddingRef(false)} />
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40 }}>
+                    <button
+                      onClick={() => { if (!atRefLimit) setAddingRef(true) }}
+                      disabled={atRefLimit}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '12px 28px', background: 'var(--gold)', border: 'none',
+                        fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+                        textTransform: 'uppercase', color: 'var(--bg)',
+                        cursor: atRefLimit ? 'default' : 'none',
+                        opacity: atRefLimit ? 0.5 : 1,
+                      }}
+                    >
+                      + Add New Reference
+                    </button>
+                    {atRefLimit && (
+                      <span style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}>
+                        (max 6)
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>
+                      {loadingRefs ? 'Loading…' : `${refs.length} reference${refs.length !== 1 ? 's' : ''}`}
+                    </p>
+                    {refs.length === 0 && !loadingRefs && (
+                      <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', padding: '32px 0' }}>
+                        No references yet. Add your first one above.
+                      </p>
+                    )}
+                    {refs.map(r => (
+                      <RefRow key={r.id} r={r} onDelete={handleRefDelete} />
+                    ))}
+                  </div>
+                </>
+              )
+            )}
+
+            {/* ── CONTACT TAB ── */}
+            {activeTab === 'contact' && (
+              <>
+                <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                  Site <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Settings</em>
+                </h2>
+                <ContactForm onSaved={onSaved} />
+              </>
             )}
           </>
         )}

@@ -20,6 +20,8 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false)
   const [projectsKey, setProjectsKey] = useState(0)
   const [teamKey, setTeamKey] = useState(0)
+  const [refsKey, setRefsKey] = useState(0)
+  const [footerKey, setFooterKey] = useState(0)
 
   // Sync class to <html> so CSS vars cascade everywhere
   useEffect(() => {
@@ -50,11 +52,11 @@ export default function App() {
               <Projects refreshKey={projectsKey} />
               <Services />
               <Team refreshKey={teamKey} />
-              <References />
+              <References refreshKey={refsKey} />
               <Studio />
               <Contact />
             </main>
-            <Footer />
+            <Footer refreshKey={footerKey} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -88,7 +90,12 @@ export default function App() {
         {adminOpen && (
           <AdminPanel
             onClose={() => setAdminOpen(false)}
-            onSaved={() => { setProjectsKey(k => k + 1); setTeamKey(k => k + 1) }}
+            onSaved={() => {
+              setProjectsKey(k => k + 1)
+              setTeamKey(k => k + 1)
+              setRefsKey(k => k + 1)
+              setFooterKey(k => k + 1)
+            }}
           />
         )}
       </AnimatePresence>
