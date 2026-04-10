@@ -54,7 +54,7 @@ export default function App() {
               <Team refreshKey={teamKey} />
               <References refreshKey={refsKey} />
               <Studio />
-              <Contact />
+              <Contact refreshKey={footerKey} />
             </main>
             <Footer refreshKey={footerKey} />
           </motion.div>

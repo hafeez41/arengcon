@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { supabase } from '../lib/supabase'
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%', background: 'transparent',
@@ -9,13 +10,34 @@ const INPUT_STYLE: React.CSSProperties = {
   outline: 'none', transition: 'border-color 0.3s',
 }
 
+const DEFAULTS = {
+  email1: 'info@arengcon.com',
+  phone: '+234 000 000 0000',
+  location: 'Lagos, Nigeria',
+  hours: 'Mon – Fri, 9am – 6pm',
+  instagram: '#',
+  linkedin: '#',
+}
+
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
-export default function Contact() {
+export default function Contact({ refreshKey }: { refreshKey?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [status, setStatus] = useState<Status>('idle')
+  const [info, setInfo] = useState(DEFAULTS)
+
+  useEffect(() => {
+    supabase.from('site_settings').select('key, value').then(({ data }) => {
+      if (!data || data.length === 0) return
+      const merged = { ...DEFAULTS }
+      data.forEach((row: { key: string; value: string }) => {
+        if (row.key in merged) (merged as any)[row.key] = row.value
+      })
+      setInfo(merged)
+    })
+  }, [refreshKey])
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderBottomColor = 'var(--gold)'
@@ -69,10 +91,10 @@ export default function Contact() {
 
           <motion.div initial={{ opacity: 0, x: -16 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.2, duration: 0.55 }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             {[
-              { label: 'Email',  val: 'hello@arengcon.com' },
-              { label: 'Phone',  val: '+234 800 000 0000' },
-              { label: 'Studio', val: 'Victoria Island, Lagos, Nigeria' },
-              { label: 'Hours',  val: 'Mon – Fri, 8am – 6pm WAT' },
+              { label: 'Email',  val: info.email1 },
+              { label: 'Phone',  val: info.phone },
+              { label: 'Studio', val: info.location },
+              { label: 'Hours',  val: info.hours },
             ].map(item => (
               <div key={item.label}>
                 <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
@@ -80,11 +102,12 @@ export default function Contact() {
               </div>
             ))}
             <div style={{ display: 'flex', gap: 20, paddingTop: 8 }}>
-              {['Instagram', 'LinkedIn', 'Behance'].map(s => (
-                <a key={s} href="#" className="link-slide" style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.3s' }}
+              {[{ label: 'Instagram', href: info.instagram }, { label: 'LinkedIn', href: info.linkedin }].map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="link-slide"
+                  style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.3s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
-                >{s}</a>
+                >{s.label}</a>
               ))}
             </div>
           </motion.div>
