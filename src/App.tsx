@@ -56,7 +56,7 @@ export default function App() {
               <Studio />
               <Contact refreshKey={footerKey} />
             </main>
-            <Footer refreshKey={footerKey} />
+            <Footer />
           </motion.div>
         )}
       </AnimatePresence>
