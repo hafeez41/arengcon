@@ -311,30 +311,33 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-        {p.img && <img src={p.img} alt="" style={{ width: 48, height: 48, objectFit: 'cover', flexShrink: 0 }} />}
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{p.title}</p>
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}>
-            {p.location} · {p.year} · {p.type}
-          </p>
+    <div style={{ padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' as const }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          {p.img && <img src={p.img} alt="" style={{ width: 48, height: 48, objectFit: 'cover', flexShrink: 0 }} />}
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{p.title}</p>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}>
+              {p.location} · {p.year} · {p.type}
+            </p>
+          </div>
         </div>
+        {confirming ? (
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
+              {deleting ? '…' : 'Confirm'}
+            </button>
+            <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
+            Delete
+          </button>
+        )}
       </div>
-      {confirming ? (
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
-            {deleting ? '…' : 'Confirm'}
-          </button>
-          <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-          Delete
-        </button>
-      )}
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
     </div>
   )
 }
@@ -452,34 +455,37 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-        <img
-          src={m.image || '/avatar-default.svg'}
-          alt={m.name}
-          style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: '50%', flexShrink: 0, border: '1px solid var(--border)' }}
-        />
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{m.name}</p>
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {m.role}
-          </p>
+    <div style={{ padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' as const }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <img
+            src={m.image || '/avatar-default.svg'}
+            alt={m.name}
+            style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: '50%', flexShrink: 0, border: '1px solid var(--border)' }}
+          />
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{m.name}</p>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {m.role}
+            </p>
+          </div>
         </div>
+        {confirming ? (
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
+              {deleting ? '…' : 'Confirm'}
+            </button>
+            <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
+            Delete
+          </button>
+        )}
       </div>
-      {confirming ? (
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
-            {deleting ? '…' : 'Confirm'}
-          </button>
-          <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-          Delete
-        </button>
-      )}
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
     </div>
   )
 }
@@ -573,34 +579,37 @@ function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void 
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{r.name}</p>
-        {r.title && (
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.06em', marginBottom: 2 }}>
-            {r.title}
-          </p>
-        )}
-        {r.project && (
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
-            {r.project}
-          </p>
+    <div style={{ padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' as const }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{r.name}</p>
+          {r.title && (
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.06em', marginBottom: 2 }}>
+              {r.title}
+            </p>
+          )}
+          {r.project && (
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
+              {r.project}
+            </p>
+          )}
+        </div>
+        {confirming ? (
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
+              {deleting ? '…' : 'Confirm'}
+            </button>
+            <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
+            Delete
+          </button>
         )}
       </div>
-      {confirming ? (
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
-            {deleting ? '…' : 'Confirm'}
-          </button>
-          <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-          Delete
-        </button>
-      )}
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
     </div>
   )
 }
