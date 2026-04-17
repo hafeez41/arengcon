@@ -110,7 +110,7 @@ export default function Updates({ refreshKey }: Props) {
   const duration = updates.length * 4 // seconds — ~4s per card
 
   return (
-    <section id="updates" ref={sectionRef} style={{ padding: 'clamp(64px, 8vw, 120px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
+    <section id="updates" ref={sectionRef} style={{ padding: 'clamp(40px, 5vw, 72px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
       <style>{`
         @keyframes marquee {
           from { transform: translateX(0); }
@@ -129,17 +129,12 @@ export default function Updates({ refreshKey }: Props) {
         initial={{ opacity: 0, y: 32 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        style={{ marginBottom: 'clamp(20px, 2.5vw, 32px)' }}
+        style={{ marginBottom: 'clamp(16px, 2vw, 24px)', display: 'flex', alignItems: 'center', gap: 10 }}
       >
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 12 }}>
-          Latest Updates
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <LogoIcon style={{ width: 'clamp(48px, 6vw, 72px)', height: 'clamp(48px, 6vw, 72px)', flexShrink: 0 }} />
-          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 5vw, 3.6rem)', fontWeight: 300, color: 'var(--text)', lineHeight: 1.1 }}>
-            Arengcon <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Updates</em>
-          </h2>
-        </div>
+        <LogoIcon style={{ width: 'clamp(48px, 6vw, 72px)', height: 'clamp(48px, 6vw, 72px)', flexShrink: 0 }} />
+        <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 5vw, 3.6rem)', fontWeight: 300, color: 'var(--text)', lineHeight: 1.1 }}>
+          Arengcon <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Updates</em>
+        </h2>
       </motion.div>
 
       {/* Infinite track */}
