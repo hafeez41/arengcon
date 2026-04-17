@@ -169,7 +169,7 @@ function ServiceModal({ s, onClose }: { s: Service; onClose: () => void }) {
           {/* Highlights */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid var(--border)', paddingTop: 20 }}>
             {s.highlights.map(h => (
-              <div key={h.label} style={{ display: 'flex', gap: 16, alignItems: 'baseline' }}>
+              <div key={h.label} style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
                 <span style={{
                   fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.28em',
                   textTransform: 'uppercase', color: 'var(--muted2)',

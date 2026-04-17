@@ -9,6 +9,7 @@ import Studio from './components/Studio'
 import Contact from './components/Contact'
 import Team from './components/Team'
 import References from './components/References'
+import Updates from './components/Updates'
 import Footer from './components/Footer'
 import CustomCursor from './components/CustomCursor'
 import AdminPanel from './components/AdminPanel'
@@ -22,6 +23,7 @@ export default function App() {
   const [teamKey, setTeamKey] = useState(0)
   const [refsKey, setRefsKey] = useState(0)
   const [footerKey, setFooterKey] = useState(0)
+  const [updatesKey, setUpdatesKey] = useState(0)
 
   // Sync class to <html> so CSS vars cascade everywhere
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function App() {
             <Navbar isLight={isLight} onToggleTheme={() => setIsLight(v => !v)} />
             <main>
               <Hero />
+              <Updates refreshKey={updatesKey} />
               <Projects refreshKey={projectsKey} />
               <Services />
               <Team refreshKey={teamKey} />
@@ -95,6 +98,7 @@ export default function App() {
               setTeamKey(k => k + 1)
               setRefsKey(k => k + 1)
               setFooterKey(k => k + 1)
+              setUpdatesKey(k => k + 1)
             }}
           />
         )}

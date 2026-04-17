@@ -63,7 +63,7 @@ export default function Navbar({ isLight, onToggleTheme }: NavbarProps) {
       >
         {/* Logo */}
         <button onClick={() => go('#hero')} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'none', color: 'var(--text)' }}>
-          <LogoIcon style={{ width: 132, height: 132 }} />
+          <LogoIcon style={{ width: 'clamp(64px, 10vw, 132px)', height: 'clamp(64px, 10vw, 132px)' }} />
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
             <span style={{ fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'var(--text)' }}>Arengcon</span>
             <span style={{ fontFamily: 'var(--sans)', fontSize: 10, fontWeight: 600, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--gold)' }}>Est. 2013 · Nigeria</span>

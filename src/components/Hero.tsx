@@ -36,21 +36,21 @@ export default function Hero() {
               animate={inView ? { y: 0 } : {}}
               transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
               style={{
-                fontFamily: 'var(--serif)',
+                fontFamily: "'Rajdhani', system-ui, sans-serif",
                 fontSize: 'clamp(2.6rem, 7.5vw, 6.8rem)',
                 fontWeight: 700,
                 lineHeight: 1.06,
                 color: 'var(--text)',
               }}
             >
-              We Build <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>Enduring</em> Spaces
+              We Build <em style={{ fontStyle: 'italic', color: 'var(--gold)', fontFamily: "'Rajdhani', system-ui, sans-serif" }}>Enduring</em> Spaces
             </motion.h1>
           </div>
 
           {/* Subtext + CTA */}
           <motion.div initial={{ opacity: 0, y: 14 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.55, delay: 0.35 }}
             style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 20, marginTop: 24, paddingBottom: 36 }}>
-            <p style={{ fontFamily: 'var(--sans)', fontWeight: 500, fontSize: 'clamp(15px, 1.8vw, 20px)', lineHeight: 1.75, color: '#d0ccc6', maxWidth: 400 }}>
+            <p style={{ fontFamily: "'Rajdhani', system-ui, sans-serif", fontWeight: 500, fontSize: 'clamp(15px, 1.8vw, 20px)', lineHeight: 1.75, color: '#d0ccc6', maxWidth: 400 }}>
               Architecture, interior design, and construction<br />that honour craft, context, and the people<br />who inhabit our work.
             </p>
             <button

@@ -4,6 +4,16 @@ import { supabase, uploadImage, extractVideoId } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import type { Project } from './ProjectModal'
 
+interface UpdateEntry {
+  id: number
+  title: string
+  details: string
+  video_id: string | null
+  images: string[]
+}
+
+const emptyUpdateForm = { title: '', details: '', youtubeUrl: '' }
+
 interface Props {
   onClose: () => void
   onSaved: () => void
@@ -102,7 +112,7 @@ function Login({ onLogin }: { onLogin: (s: Session) => void }) {
 }
 
 /* ── Tab bar ──────────────────────────────────────────────────────── */
-type Tab = 'projects' | 'team' | 'references' | 'contact'
+type Tab = 'projects' | 'team' | 'references' | 'contact' | 'updates'
 
 function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
   const tabs: { id: Tab; label: string }[] = [
@@ -110,6 +120,7 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
     { id: 'team',       label: 'Team' },
     { id: 'references', label: 'References' },
     { id: 'contact',    label: 'Contact' },
+    { id: 'updates',    label: 'Updates' },
   ]
   return (
     <div style={{ display: 'flex', gap: 4, marginBottom: 40, flexWrap: 'wrap' }}>
@@ -283,9 +294,10 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
 function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
 
   const del = async () => {
-    setDeleting(true)
+    setDeleting(true); setError('')
     const toRemove = [p.img, ...(p.gallery ?? [])].filter(Boolean).map(url => {
       const parts = url.split('/project-images/')
       return parts.length > 1 ? parts[1] : null
@@ -293,12 +305,13 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
     if (toRemove.length > 0) {
       await supabase.storage.from('project-images').remove(toRemove)
     }
-    await supabase.from('projects').delete().eq('id', p.id)
+    const { error: dbErr } = await supabase.from('projects').delete().eq('id', p.id)
+    if (dbErr) { setError(dbErr.message); setDeleting(false); return }
     onDelete(p.id)
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
         {p.img && <img src={p.img} alt="" style={{ width: 48, height: 48, objectFit: 'cover', flexShrink: 0 }} />}
         <div style={{ minWidth: 0 }}>
@@ -425,19 +438,21 @@ function TeamForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => 
 function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
 
   const del = async () => {
-    setDeleting(true)
+    setDeleting(true); setError('')
     if (m.image && m.image !== '/avatar-default.svg' && m.image.includes('/project-images/')) {
       const path = m.image.split('/project-images/')[1]
       if (path) await supabase.storage.from('project-images').remove([path])
     }
-    await supabase.from('team').delete().eq('id', m.id)
+    const { error: dbErr } = await supabase.from('team').delete().eq('id', m.id)
+    if (dbErr) { setError(dbErr.message); setDeleting(false); return }
     onDelete(m.id)
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
         <img
           src={m.image || '/avatar-default.svg'}
@@ -548,15 +563,17 @@ function RefForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => v
 function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
 
   const del = async () => {
-    setDeleting(true)
-    await supabase.from('client_references').delete().eq('id', r.id)
+    setDeleting(true); setError('')
+    const { error: dbErr } = await supabase.from('client_references').delete().eq('id', r.id)
+    if (dbErr) { setError(dbErr.message); setDeleting(false); return }
     onDelete(r.id)
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' as const }}>
       <div style={{ minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{r.name}</p>
         {r.title && (
@@ -584,6 +601,160 @@ function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void 
           Delete
         </button>
       )}
+    </div>
+  )
+}
+
+/* ── Update Form ─────────────────────────────────────────────────── */
+function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState(emptyUpdateForm)
+  const [images, setImages] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof emptyUpdateForm, val: string) =>
+    setForm(f => ({ ...f, [key]: val }))
+
+  const pickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).slice(0, 3)
+    const oversized = files.filter(f => f.size > 1024 * 1024)
+    if (oversized.length > 0) {
+      setError('Images must be 1MB or smaller.')
+      return
+    }
+    setError('')
+    setImages(files)
+    setImagePreviews(files.map(f => URL.createObjectURL(f)))
+  }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const oversized = images.filter(f => f.size > 1024 * 1024)
+    if (oversized.length > 0) { setError('Images must be 1MB or smaller.'); return }
+    setSaving(true); setError('')
+    try {
+      const imageUrls = await Promise.all(images.map(uploadImage))
+      const { error: dbErr } = await supabase.from('updates').insert({
+        title: form.title,
+        details: form.details,
+        video_id: extractVideoId(form.youtubeUrl) || null,
+        images: imageUrls,
+      })
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong.')
+      setSaving(false)
+    }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 120 }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <Field label="Title *">
+        <input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)} required />
+      </Field>
+
+      <Field label="Details *">
+        <textarea style={ta} value={form.details} onChange={e => set('details', e.target.value)} required />
+      </Field>
+
+      <Field label="YouTube URL (optional)">
+        <input style={inputStyle} value={form.youtubeUrl}
+          onChange={e => set('youtubeUrl', e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=..." />
+        {form.youtubeUrl && extractVideoId(form.youtubeUrl) && (
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--gold)', marginTop: 4 }}>
+            ✓ Video ID: {extractVideoId(form.youtubeUrl)}
+          </p>
+        )}
+      </Field>
+
+      <Field label="Images (up to 3, max 1MB each)">
+        <label style={{ display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+          Choose images
+          <input type="file" accept="image/*" multiple onChange={pickImages} style={{ display: 'none' }} />
+        </label>
+        {imagePreviews.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+            {imagePreviews.map((src, i) => (
+              <img key={i} src={src} alt="" style={{ height: 72, width: 72, objectFit: 'cover', border: '1px solid var(--border)' }} />
+            ))}
+          </div>
+        )}
+      </Field>
+
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving} style={{
+          padding: '12px 32px', background: 'var(--gold)', border: 'none',
+          fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+          textTransform: 'uppercase', color: 'var(--bg)',
+          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+        }}>
+          {saving ? 'Saving…' : 'Save Update'}
+        </button>
+        <button type="button" onClick={onCancel} style={{
+          padding: '12px 24px', background: 'none',
+          border: '1px solid var(--border)', fontFamily: 'var(--sans)',
+          fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase',
+          color: 'var(--muted)', cursor: 'none',
+        }}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/* ── Update Row ───────────────────────────────────────────────────── */
+function UpdateRow({ u, onDelete }: { u: UpdateEntry; onDelete: (id: number) => void }) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  const del = async () => {
+    setDeleting(true); setError('')
+    const toRemove = (u.images ?? []).map(url => {
+      const parts = url.split('/project-images/')
+      return parts.length > 1 ? parts[1] : null
+    }).filter(Boolean) as string[]
+    if (toRemove.length > 0) {
+      await supabase.storage.from('project-images').remove(toRemove)
+    }
+    const { error: dbErr } = await supabase.from('updates').delete().eq('id', u.id)
+    if (dbErr) { setError(dbErr.message); setDeleting(false); return }
+    onDelete(u.id)
+  }
+
+  return (
+    <div style={{ padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' as const }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{u.title}</p>
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 480 }}>
+            {u.details}
+          </p>
+        </div>
+        {confirming ? (
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={del} disabled={deleting} style={{ padding: '6px 14px', background: '#e05a5a', border: 'none', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', cursor: 'none' }}>
+              {deleting ? '…' : 'Confirm'}
+            </button>
+            <button onClick={() => setConfirming(false)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
+            Delete
+          </button>
+        )}
+      </div>
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
     </div>
   )
 }
@@ -703,6 +874,11 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
   const [addingRef, setAddingRef] = useState(false)
   const [loadingRefs, setLoadingRefs] = useState(true)
 
+  // Updates state
+  const [updates, setUpdates] = useState<UpdateEntry[]>([])
+  const [addingUpdate, setAddingUpdate] = useState(false)
+  const [loadingUpdates, setLoadingUpdates] = useState(true)
+
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Auth
@@ -750,8 +926,16 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
     setLoadingRefs(false)
   }
 
+  // Fetch updates
+  const fetchUpdates = async () => {
+    setLoadingUpdates(true)
+    const { data } = await supabase.from('updates').select('*').order('created_at', { ascending: false })
+    if (data) setUpdates(data.map((r: any) => ({ id: r.id, title: r.title, details: r.details || '', video_id: r.video_id || null, images: r.images ?? [] })))
+    setLoadingUpdates(false)
+  }
+
   useEffect(() => {
-    if (session) { fetchProjects(); fetchMembers(); fetchRefs() }
+    if (session) { fetchProjects(); fetchMembers(); fetchRefs(); fetchUpdates() }
   }, [session])
 
   // ESC to close
@@ -797,6 +981,17 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   const handleRefDelete = (id: number) => {
     setRefs(rs => rs.filter(r => r.id !== id))
+    onSaved()
+  }
+
+  const handleUpdateSaved = () => {
+    setAddingUpdate(false)
+    fetchUpdates()
+    onSaved()
+  }
+
+  const handleUpdateDelete = (id: number) => {
+    setUpdates(us => us.filter(u => u.id !== id))
     onSaved()
   }
 
@@ -854,6 +1049,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
               setAddingProject(false)
               setAddingMember(false)
               setAddingRef(false)
+              setAddingUpdate(false)
             }} />
 
             {/* ── PROJECTS TAB ── */}
@@ -985,6 +1181,55 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                 </h2>
                 <ContactForm onSaved={onSaved} />
               </>
+            )}
+
+            {/* ── UPDATES TAB ── */}
+            {activeTab === 'updates' && (
+              addingUpdate ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Update</em>
+                  </h2>
+                  <UpdateForm onSaved={handleUpdateSaved} onCancel={() => setAddingUpdate(false)} />
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40 }}>
+                    <button
+                      onClick={() => { if (updates.length < 10) setAddingUpdate(true) }}
+                      disabled={updates.length >= 10}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '12px 28px', background: 'var(--gold)', border: 'none',
+                        fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
+                        textTransform: 'uppercase', color: 'var(--bg)',
+                        cursor: updates.length >= 10 ? 'default' : 'none',
+                        opacity: updates.length >= 10 ? 0.5 : 1,
+                      }}
+                    >
+                      + Add New Update
+                    </button>
+                    {updates.length >= 10 && (
+                      <span style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}>
+                        (max 10)
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>
+                      {loadingUpdates ? 'Loading…' : `${updates.length} update${updates.length !== 1 ? 's' : ''}`}
+                    </p>
+                    {updates.length === 0 && !loadingUpdates && (
+                      <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', padding: '32px 0' }}>
+                        No updates yet. Add your first one above.
+                      </p>
+                    )}
+                    {updates.map(u => (
+                      <UpdateRow key={u.id} u={u} onDelete={handleUpdateDelete} />
+                    ))}
+                  </div>
+                </>
+              )
             )}
           </>
         )}

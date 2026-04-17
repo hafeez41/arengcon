@@ -13,13 +13,14 @@ export default function Studio() {
 
   return (
     <section id="studio" style={{ padding: 'clamp(64px, 8vw, 120px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+      <style>{`@media (max-width: 600px) { .studio-deco { display: none; } }`}</style>
       <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap: 'clamp(40px, 6vw, 96px)', alignItems: 'center' }}>
 
         <motion.div initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.7 }} style={{ position: 'relative' }}>
           <div className="img-zoom" style={{ aspectRatio: '3/4', width: '100%', background: 'var(--bg)' }}>
             <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80&auto=format&fit=crop" alt="Arengcon studio" />
           </div>
-          <div style={{ position: 'absolute', bottom: -12, right: -12, width: 72, height: 72, border: '1px solid rgba(196,168,119,0.22)', pointerEvents: 'none' }} />
+          <div className="studio-deco" style={{ position: 'absolute', bottom: -12, right: -12, width: 72, height: 72, border: '1px solid rgba(196,168,119,0.22)', pointerEvents: 'none' }} />
         </motion.div>
 
         <div ref={headRef}>
