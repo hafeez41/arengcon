@@ -6,7 +6,7 @@ const INPUT_STYLE: React.CSSProperties = {
   width: '100%', background: 'transparent',
   border: 'none', borderBottom: '1px solid var(--border)',
   padding: '12px 0', color: 'var(--text)',
-  fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300,
+  fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 300,
   outline: 'none', transition: 'border-color 0.3s',
 }
 
@@ -78,7 +78,7 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
       <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <div style={{ marginBottom: 'clamp(40px, 6vw, 72px)', textAlign: 'center' }}>
-          <motion.p initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.38em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14 }}>
+          <motion.p initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} style={{ fontFamily: 'var(--serif)', fontSize: 10, letterSpacing: '0.38em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14 }}>
             Get In Touch
           </motion.p>
           <div className="heading-clip">
@@ -92,9 +92,9 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
 
           <motion.div initial={{ opacity: 0, x: -16 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.2, duration: 0.55 }} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             <div>
-              <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>Email</p>
-              <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{info.email1}</p>
-              {info.email2 && <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)', marginTop: 4 }}>{info.email2}</p>}
+              <p style={{ fontFamily: 'var(--serif)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>Email</p>
+              <p style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{info.email1}</p>
+              {info.email2 && <p style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 300, color: 'var(--text)', marginTop: 4 }}>{info.email2}</p>}
             </div>
             {[
               { label: 'Phone',  val: info.phone },
@@ -102,14 +102,14 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
               { label: 'Hours',  val: info.hours },
             ].map(item => (
               <div key={item.label}>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
+                <p style={{ fontFamily: 'var(--serif)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>{item.label}</p>
+                <p style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 300, color: 'var(--text)' }}>{item.val}</p>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 20, paddingTop: 8 }}>
               {[{ label: 'Instagram', href: info.instagram }, { label: 'LinkedIn', href: info.linkedin }].map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="link-slide"
-                  style={{ fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.3s' }}
+                  style={{ fontFamily: 'var(--serif)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.3s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
                 >{s.label}</a>
@@ -121,13 +121,13 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
             {status === 'sent' ? (
               <div style={{ paddingTop: 40 }}>
                 <p style={{ fontFamily: 'var(--serif)', fontSize: 32, fontWeight: 300, color: 'var(--text)', marginBottom: 10 }}>Thank you.</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 17, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
+                <p style={{ fontFamily: 'var(--serif)', fontSize: 17, color: 'var(--muted)' }}>We'll be in touch shortly.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
                 {([['name','text','Name','Your name'],['email','email','Email','your@email.com']] as [string,string,string,string][]).map(([id,type,label,ph]) => (
                   <div key={id}>
-                    <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>{label}</p>
+                    <p style={{ fontFamily: 'var(--serif)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>{label}</p>
                     <input id={id} type={type} required placeholder={ph}
                       value={form[id as 'name'|'email']}
                       onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
@@ -137,7 +137,7 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
                   </div>
                 ))}
                 <div>
-                  <p style={{ fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>Message</p>
+                  <p style={{ fontFamily: 'var(--serif)', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>Message</p>
                   <textarea required rows={4} placeholder="Tell us about your project..."
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
@@ -147,7 +147,7 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
                 </div>
 
                 {status === 'error' && (
-                  <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: '#c0392b', letterSpacing: '0.05em' }}>
+                  <p style={{ fontFamily: 'var(--serif)', fontSize: 13, color: '#c0392b', letterSpacing: '0.05em' }}>
                     Something went wrong — please try again or email us directly.
                   </p>
                 )}
@@ -155,7 +155,7 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
                 <button type="submit" disabled={status === 'sending'} style={{
                   padding: '14px 0', background: 'none',
                   border: '1px solid rgba(238,235,229,0.2)',
-                  fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase',
+                  fontFamily: 'var(--serif)', fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase',
                   color: status === 'sending' ? 'var(--muted)' : 'var(--text)',
                   cursor: status === 'sending' ? 'default' : 'none',
                   transition: 'all 0.3s',

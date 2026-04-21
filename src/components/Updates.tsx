@@ -30,30 +30,22 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return 'Arengcon'
   const d = new Date(dateStr)
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = months[d.getMonth()]
-  const year = d.getFullYear()
-  return `${day} ${month} ${year}`
+  return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`
 }
 
 const GAP = 24
 const CARD_W = 320
+const SPEED = 32 // px per second — leisurely drift
 
 function UpdateCard({ update, onClick }: { update: Update; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
       style={{
-        flexShrink: 0,
-        width: CARD_W,
-        height: 420,
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        cursor: 'none',
-        transition: 'border-color 0.25s',
-        overflow: 'hidden',
+        flexShrink: 0, width: CARD_W, height: 420,
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column',
+        cursor: 'none', transition: 'border-color 0.25s', overflow: 'hidden',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--gold)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
@@ -67,16 +59,16 @@ function UpdateCard({ update, onClick }: { update: Update; onClick: () => void }
         </div>
       )}
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1, gap: 10, overflow: 'hidden' }}>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--gold)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', margin: 0 }}>
           {formatDate(update.created_at)}
         </p>
         <h3 style={{ fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.3 }}>
           {update.title}
         </h3>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', flex: 1 } as React.CSSProperties}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 } as React.CSSProperties}>
           {update.details}
         </p>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: 'var(--gold)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', margin: 0 }}>
           Read more →
         </p>
       </div>
@@ -87,43 +79,115 @@ function UpdateCard({ update, onClick }: { update: Update; onClick: () => void }
 export default function Updates({ refreshKey }: Props) {
   const [updates, setUpdates] = useState<Update[]>([])
   const [selected, setSelected] = useState<Update | null>(null)
-  const [paused, setPaused] = useState(false)
+
   const trackRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-10% 0px' })
 
+  // All animation state in refs to avoid stale closures inside rAF
+  const posRef      = useRef(0)
+  const rafRef      = useRef<number>(0)
+  const isHovered   = useRef(false)
+  const isModal     = useRef(false)
+  const isDragging  = useRef(false)
+  const didMove     = useRef(false)
+  const dragStartX  = useRef(0)
+  const dragStartPos= useRef(0)
+  const lastT       = useRef<number | null>(null)
+  // Keep trackWidth accessible inside rAF without re-capturing the effect
+  const trackWidthRef = useRef(0)
+  trackWidthRef.current = updates.length * (CARD_W + GAP)
+
+  // Sync modal state to ref
+  useEffect(() => { isModal.current = selected !== null }, [selected])
+
+  // rAF scroll loop — only depends on nothing mutable so never restarts
   useEffect(() => {
-    const fetchData = async () => {
-      const { data } = await supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(10)
+    function normalize(p: number): number {
+      const tw = trackWidthRef.current
+      if (tw === 0) return p
+      let n = p % tw
+      if (n > 0) n -= tw
+      return n
+    }
+    function apply() {
+      if (trackRef.current) trackRef.current.style.transform = `translateX(${posRef.current}px)`
+    }
+    function tick(t: number) {
+      const paused = isHovered.current || isModal.current || isDragging.current
+      if (!paused && trackWidthRef.current > 0) {
+        const dt = lastT.current != null ? (t - lastT.current) / 1000 : 0
+        posRef.current = normalize(posRef.current - SPEED * dt)
+        apply()
+      }
+      lastT.current = paused ? null : t
+      rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, []) // intentionally empty — everything accessed via refs
+
+  // Shared drag helpers (use refs only, safe to capture once in touch useEffect)
+  function startDrag(clientX: number) {
+    isDragging.current = true
+    didMove.current = false
+    dragStartX.current = clientX
+    dragStartPos.current = posRef.current
+    lastT.current = null
+  }
+  function moveDrag(clientX: number) {
+    if (!isDragging.current) return
+    const dx = clientX - dragStartX.current
+    if (Math.abs(dx) > 4) didMove.current = true
+    const tw = trackWidthRef.current
+    if (tw === 0) return
+    let p = dragStartPos.current + dx
+    p = p % tw
+    if (p > 0) p -= tw
+    posRef.current = p
+    if (trackRef.current) trackRef.current.style.transform = `translateX(${p}px)`
+  }
+  function endDrag() {
+    isDragging.current = false
+    lastT.current = null
+  }
+
+  // Non-passive touch listeners so we can call e.preventDefault() and stop page scroll
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const onTS = (e: TouchEvent) => startDrag(e.touches[0].clientX)
+    const onTM = (e: TouchEvent) => { e.preventDefault(); moveDrag(e.touches[0].clientX) }
+    const onTE = () => endDrag()
+    el.addEventListener('touchstart', onTS, { passive: true })
+    el.addEventListener('touchmove', onTM, { passive: false })
+    el.addEventListener('touchend', onTE)
+    return () => {
+      el.removeEventListener('touchstart', onTS)
+      el.removeEventListener('touchmove', onTM)
+      el.removeEventListener('touchend', onTE)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(10).then(({ data }) => {
       if (data && data.length > 0) {
-        setUpdates(data.map((r: any) => ({ id: r.id, title: r.title, details: r.details || '', video_id: r.video_id || null, images: r.images ?? [], created_at: r.created_at || '' })))
+        setUpdates(data.map((r: any) => ({
+          id: r.id, title: r.title, details: r.details || '',
+          video_id: r.video_id || null, images: r.images ?? [],
+          created_at: r.created_at || '',
+        })))
       } else {
         setUpdates(PLACEHOLDER_UPDATES)
       }
-    }
-    fetchData()
+    })
   }, [refreshKey])
 
-  // Duplicate items for seamless loop
   const looped = updates.length > 0 ? [...updates, ...updates] : []
-  const trackWidth = updates.length * (CARD_W + GAP)
-  const duration = updates.length * 4 // seconds — ~4s per card
 
   return (
     <section id="updates" ref={sectionRef} style={{ padding: 'clamp(40px, 5vw, 72px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
-      <style>{`
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-${trackWidth}px); }
-        }
-        .updates-track {
-          animation: marquee ${duration}s linear infinite;
-        }
-        .updates-track.paused {
-          animation-play-state: paused;
-        }
-      `}</style>
-
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 32 }}
@@ -137,28 +201,38 @@ export default function Updates({ refreshKey }: Props) {
         </h2>
       </motion.div>
 
-      {/* Infinite track */}
+      {/* Draggable track */}
       <div
-        style={{ overflow: 'hidden', cursor: 'none' }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
+        ref={containerRef}
+        style={{ overflow: 'hidden', userSelect: 'none', touchAction: 'pan-y' }}
+        onMouseEnter={() => { isHovered.current = true }}
+        onMouseLeave={() => { isHovered.current = false; endDrag() }}
+        onMouseDown={e => startDrag(e.clientX)}
+        onMouseMove={e => moveDrag(e.clientX)}
+        onMouseUp={() => endDrag()}
       >
         <div
           ref={trackRef}
-          className={`updates-track${paused ? ' paused' : ''}`}
-          style={{ display: 'flex', gap: GAP, width: 'max-content' }}
+          style={{ display: 'flex', gap: GAP, width: 'max-content', willChange: 'transform' }}
         >
           {looped.map((update, i) => (
             <UpdateCard
               key={`${update.id}-${i}`}
               update={update}
-              onClick={() => { setPaused(true); setSelected(update) }}
+              onClick={() => {
+                if (!didMove.current) {
+                  setSelected(update)
+                }
+              }}
             />
           ))}
         </div>
       </div>
 
-      <UpdateModal update={selected} onClose={() => { setSelected(null); setPaused(false) }} />
+      <UpdateModal
+        update={selected}
+        onClose={() => { setSelected(null); isModal.current = false }}
+      />
     </section>
   )
 }
