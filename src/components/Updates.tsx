@@ -95,9 +95,11 @@ export default function Updates({ refreshKey }: Props) {
   const dragStartX  = useRef(0)
   const dragStartPos= useRef(0)
   const lastT       = useRef<number | null>(null)
-  // Keep trackWidth accessible inside rAF without re-capturing the effect
   const trackWidthRef = useRef(0)
   trackWidthRef.current = updates.length * (CARD_W + GAP)
+  // Arrow step animation: null = idle
+  const stepAnim = useRef<{ from: number; to: number; startT: number } | null>(null)
+  const STEP_MS = 420
 
   // Sync modal state to ref
   useEffect(() => { isModal.current = selected !== null }, [selected])
@@ -111,10 +113,27 @@ export default function Updates({ refreshKey }: Props) {
       if (n > 0) n -= tw
       return n
     }
+    function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
     function apply() {
       if (trackRef.current) trackRef.current.style.transform = `translateX(${posRef.current}px)`
     }
     function tick(t: number) {
+      // Arrow step animation takes priority
+      if (stepAnim.current) {
+        const { from, to, startT } = stepAnim.current
+        const tw = trackWidthRef.current
+        const progress = Math.min((t - startT) / STEP_MS, 1)
+        // shortest path across the loop boundary
+        let diff = to - from
+        if (diff > tw / 2) diff -= tw
+        if (diff < -tw / 2) diff += tw
+        posRef.current = normalize(from + diff * ease(progress))
+        apply()
+        if (progress >= 1) { posRef.current = to; stepAnim.current = null; lastT.current = null }
+        rafRef.current = requestAnimationFrame(tick)
+        return
+      }
+
       const paused = isHovered.current || isModal.current || isDragging.current
       if (!paused && trackWidthRef.current > 0) {
         const dt = lastT.current != null ? (t - lastT.current) / 1000 : 0
@@ -127,6 +146,17 @@ export default function Updates({ refreshKey }: Props) {
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
   }, []) // intentionally empty — everything accessed via refs
+
+  function clickStep(dir: 'left' | 'right') {
+    const tw = trackWidthRef.current
+    if (!tw) return
+    // right = scroll forward (pos decreases), left = scroll back (pos increases)
+    const delta = (CARD_W + GAP) * (dir === 'right' ? 1 : -1)
+    let to = posRef.current - delta
+    to = to % tw
+    if (to > 0) to -= tw
+    stepAnim.current = { from: posRef.current, to, startT: performance.now() }
+  }
 
   // Shared drag helpers (use refs only, safe to capture once in touch useEffect)
   function startDrag(clientX: number) {
@@ -188,17 +218,43 @@ export default function Updates({ refreshKey }: Props) {
 
   return (
     <section id="updates" ref={sectionRef} style={{ padding: 'clamp(40px, 5vw, 72px) clamp(24px, 5vw, 80px)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
+      <style>{`
+        .carousel-arrows { display: flex; gap: 10px; }
+        @media (hover: none), (max-width: 767px) { .carousel-arrows { display: none !important; } }
+        .carousel-arrow {
+          width: 40px; height: 40px; border: 1px solid var(--border); background: none;
+          color: var(--text); cursor: none; display: flex; align-items: center; justify-content: center;
+          transition: border-color 0.25s, color 0.25s; flex-shrink: 0;
+        }
+        .carousel-arrow:hover { border-color: var(--gold); color: var(--gold); }
+        .carousel-arrow svg { pointer-events: none; }
+      `}</style>
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 32 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        style={{ marginBottom: 'clamp(16px, 2vw, 24px)', display: 'flex', alignItems: 'center', gap: 10 }}
+        style={{ marginBottom: 'clamp(16px, 2vw, 24px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
       >
-        <LogoIcon style={{ width: 'clamp(48px, 6vw, 72px)', height: 'clamp(48px, 6vw, 72px)', flexShrink: 0 }} />
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 5vw, 3.6rem)', fontWeight: 300, color: 'var(--text)', lineHeight: 1.1 }}>
-          Arengcon <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Updates</em>
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <LogoIcon style={{ width: 'clamp(48px, 6vw, 72px)', height: 'clamp(48px, 6vw, 72px)', flexShrink: 0 }} />
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 5vw, 3.6rem)', fontWeight: 300, color: 'var(--text)', lineHeight: 1.1 }}>
+            Arengcon <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Updates</em>
+          </h2>
+        </div>
+        <div className="carousel-arrows">
+          <button className="carousel-arrow" onClick={() => clickStep('left')} aria-label="Previous">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10 3L5 8l5 5"/>
+            </svg>
+          </button>
+          <button className="carousel-arrow" onClick={() => clickStep('right')} aria-label="Next">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </button>
+        </div>
       </motion.div>
 
       {/* Draggable track */}
