@@ -8,16 +8,44 @@ export const supabase = createClient(url, key)
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
-/**
- * Upload a file directly to Vercel Blob from the browser.
- * Uses the two-phase client upload: tiny token exchange via /api/upload-blob,
- * then browser streams the file straight to blob.vercel-storage.com — no
- * serverless payload limit applies.
- */
+/** Resize + compress an image to max 2400px on longest side, JPEG 82% quality */
+function compressImage(file: File): Promise<File> {
+  const MAX = 2400
+  const QUALITY = 0.82
+  return new Promise((resolve) => {
+    const img = new Image()
+    const src = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(src)
+      let { width, height } = img
+      if (width <= MAX && height <= MAX && file.type === 'image/jpeg') {
+        resolve(file)
+        return
+      }
+      if (Math.max(width, height) > MAX) {
+        const scale = MAX / Math.max(width, height)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : file),
+        'image/jpeg',
+        QUALITY,
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(src); resolve(file) }
+    img.src = src
+  })
+}
+
 export async function uploadImage(file: File): Promise<string> {
-  const ext = file.name.split('.').pop() ?? 'jpg'
-  const pathname = `arengcon/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const blob = await upload(pathname, file, {
+  const compressed = await compressImage(file)
+  const pathname = `arengcon/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+  const blob = await upload(pathname, compressed, {
     access: 'public',
     handleUploadUrl: '/api/upload-blob',
   })
