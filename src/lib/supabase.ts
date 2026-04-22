@@ -16,7 +16,10 @@ export async function uploadImage(file: File): Promise<string> {
     body: file,
     headers: { 'Content-Type': file.type || 'application/octet-stream' },
   })
-  if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(`Upload failed: ${body.error ?? res.statusText}`)
+  }
   const { url: blobUrl } = await res.json()
   return blobUrl
 }
