@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { supabase, uploadImage, deleteImages, extractVideoId } from '../lib/supabase'
+import { compressImage } from '../lib/compress'
 import type { Session } from '@supabase/supabase-js'
 import type { Project } from './ProjectModal'
 
@@ -154,22 +155,30 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
   const [gallery, setGallery] = useState<File[]>([])
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [error, setError] = useState('')
 
   const set = (key: keyof typeof emptyProjectForm, val: string) =>
     setForm(f => ({ ...f, [key]: val }))
 
-  const pickThumb = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pickThumb = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setThumb(file)
-    setThumbPreview(URL.createObjectURL(file))
+    setCompressing(true)
+    const compressed = await compressImage(file)
+    setThumb(compressed)
+    setThumbPreview(URL.createObjectURL(compressed))
+    setCompressing(false)
   }
 
-  const pickGallery = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pickGallery = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
-    setGallery(files)
-    setGalleryPreviews(files.map(f => URL.createObjectURL(f)))
+    if (files.length === 0) return
+    setCompressing(true)
+    const compressed = await Promise.all(files.map(compressImage))
+    setGallery(compressed)
+    setGalleryPreviews(compressed.map(f => URL.createObjectURL(f)))
+    setCompressing(false)
   }
 
   const save = async (e: React.FormEvent) => {
@@ -269,13 +278,13 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-        <button type="submit" disabled={saving} style={{
+        <button type="submit" disabled={saving || compressing} style={{
           padding: '12px 32px', background: 'var(--gold)', border: 'none',
           fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
           textTransform: 'uppercase', color: 'var(--bg)',
-          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+          cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1,
         }}>
-          {saving ? 'Saving…' : 'Save Project'}
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Project'}
         </button>
         <button type="button" onClick={onCancel} style={{
           padding: '12px 24px', background: 'none',
@@ -342,16 +351,20 @@ function TeamForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => 
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [error, setError] = useState('')
 
   const set = (key: keyof typeof emptyTeamForm, val: string) =>
     setForm(f => ({ ...f, [key]: val }))
 
-  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setPhoto(file)
-    setPhotoPreview(URL.createObjectURL(file))
+    setCompressing(true)
+    const compressed = await compressImage(file)
+    setPhoto(compressed)
+    setPhotoPreview(URL.createObjectURL(compressed))
+    setCompressing(false)
   }
 
   const save = async (e: React.FormEvent) => {
@@ -410,13 +423,13 @@ function TeamForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => 
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-        <button type="submit" disabled={saving} style={{
+        <button type="submit" disabled={saving || compressing} style={{
           padding: '12px 32px', background: 'var(--gold)', border: 'none',
           fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
           textTransform: 'uppercase', color: 'var(--bg)',
-          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+          cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1,
         }}>
-          {saving ? 'Saving…' : 'Save Member'}
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Member'}
         </button>
         <button type="button" onClick={onCancel} style={{
           padding: '12px 24px', background: 'none',
@@ -613,16 +626,21 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
   const [images, setImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [error, setError] = useState('')
 
   const set = (key: keyof typeof emptyUpdateForm, val: string) =>
     setForm(f => ({ ...f, [key]: val }))
 
-  const pickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pickImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 3)
+    if (files.length === 0) return
     setError('')
-    setImages(files)
-    setImagePreviews(files.map(f => URL.createObjectURL(f)))
+    setCompressing(true)
+    const compressed = await Promise.all(files.map(compressImage))
+    setImages(compressed)
+    setImagePreviews(compressed.map(f => URL.createObjectURL(f)))
+    setCompressing(false)
   }
 
   const save = async (e: React.FormEvent) => {
@@ -684,13 +702,13 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-        <button type="submit" disabled={saving} style={{
+        <button type="submit" disabled={saving || compressing} style={{
           padding: '12px 32px', background: 'var(--gold)', border: 'none',
           fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em',
           textTransform: 'uppercase', color: 'var(--bg)',
-          cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1,
+          cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1,
         }}>
-          {saving ? 'Saving…' : 'Save Update'}
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Update'}
         </button>
         <button type="button" onClick={onCancel} style={{
           padding: '12px 24px', background: 'none',
