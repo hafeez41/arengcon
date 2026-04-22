@@ -8,6 +8,34 @@ function devApiPlugin(blobToken: string): Plugin {
   return {
     name: 'dev-api',
     configureServer(server) {
+      // Upload handler
+      server.middlewares.use('/api/upload-blob', (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return
+        }
+        const qs = new URL(req.url!, 'http://localhost').searchParams
+        const pathname = qs.get('pathname') ?? ''
+        const contentType = (req.headers['content-type'] as string) ?? 'application/octet-stream'
+        const chunks: Buffer[] = []
+        req.on('data', (chunk: Buffer) => chunks.push(chunk))
+        req.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks)
+            const { put } = await import('@vercel/blob')
+            const blob = await put(pathname, buffer, { access: 'public', token: blobToken, contentType })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ url: blob.url }))
+          } catch (err) {
+            console.error('[dev-api] upload-blob failed:', err)
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: String(err) }))
+          }
+        })
+      })
+
+      // Delete handler
       server.middlewares.use('/api/delete-blob', (req, res) => {
         if (req.method !== 'POST') {
           res.statusCode = 405
