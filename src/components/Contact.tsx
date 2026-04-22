@@ -51,7 +51,7 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
     e.preventDefault()
     setStatus('sending')
     try {
-      const res = await fetch('https://formsubmit.co/ajax/9b45c5626d94268c4c051548d5be048f', {
+      const res = await fetch('https://formsubmit.co/ajax/Arengconoffice@gmail.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
