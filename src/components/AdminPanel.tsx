@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { supabase, uploadImage, extractVideoId } from '../lib/supabase'
+import { supabase, uploadImage, deleteImages, extractVideoId } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import type { Project } from './ProjectModal'
 
@@ -298,13 +298,7 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true); setError('')
-    const toRemove = [p.img, ...(p.gallery ?? [])].filter(Boolean).map(url => {
-      const parts = url.split('/project-images/')
-      return parts.length > 1 ? parts[1] : null
-    }).filter(Boolean) as string[]
-    if (toRemove.length > 0) {
-      await supabase.storage.from('project-images').remove(toRemove)
-    }
+    await deleteImages([p.img, ...(p.gallery ?? [])])
     const { error: dbErr } = await supabase.from('projects').delete().eq('id', p.id)
     if (dbErr) { setError(dbErr.message); setDeleting(false); return }
     onDelete(p.id)
@@ -445,9 +439,8 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
 
   const del = async () => {
     setDeleting(true); setError('')
-    if (m.image && m.image !== '/avatar-default.svg' && m.image.includes('/project-images/')) {
-      const path = m.image.split('/project-images/')[1]
-      if (path) await supabase.storage.from('project-images').remove([path])
+    if (m.image && m.image !== '/avatar-default.svg') {
+      await deleteImages([m.image])
     }
     const { error: dbErr } = await supabase.from('team').delete().eq('id', m.id)
     if (dbErr) { setError(dbErr.message); setDeleting(false); return }
@@ -627,9 +620,9 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
 
   const pickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 3)
-    const oversized = files.filter(f => f.size > 1024 * 1024)
+    const oversized = files.filter(f => f.size > 50 * 1024 * 1024)
     if (oversized.length > 0) {
-      setError('Images must be 1MB or smaller.')
+      setError('Images must be 50MB or smaller.')
       return
     }
     setError('')
@@ -639,8 +632,8 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault()
-    const oversized = images.filter(f => f.size > 1024 * 1024)
-    if (oversized.length > 0) { setError('Images must be 1MB or smaller.'); return }
+    const oversized = images.filter(f => f.size > 50 * 1024 * 1024)
+    if (oversized.length > 0) { setError('Images must be 50MB or smaller.'); return }
     setSaving(true); setError('')
     try {
       const imageUrls = await Promise.all(images.map(uploadImage))
@@ -681,7 +674,7 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
         )}
       </Field>
 
-      <Field label="Images (up to 3, max 1MB each)">
+      <Field label="Images (up to 3, max 50MB each)">
         <label style={{ display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           Choose images
           <input type="file" accept="image/*" multiple onChange={pickImages} style={{ display: 'none' }} />
@@ -727,13 +720,7 @@ function UpdateRow({ u, onDelete }: { u: UpdateEntry; onDelete: (id: number) => 
 
   const del = async () => {
     setDeleting(true); setError('')
-    const toRemove = (u.images ?? []).map(url => {
-      const parts = url.split('/project-images/')
-      return parts.length > 1 ? parts[1] : null
-    }).filter(Boolean) as string[]
-    if (toRemove.length > 0) {
-      await supabase.storage.from('project-images').remove(toRemove)
-    }
+    await deleteImages(u.images ?? [])
     const { error: dbErr } = await supabase.from('updates').delete().eq('id', u.id)
     if (dbErr) { setError(dbErr.message); setDeleting(false); return }
     onDelete(u.id)
