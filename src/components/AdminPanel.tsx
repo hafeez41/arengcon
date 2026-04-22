@@ -620,11 +620,6 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
 
   const pickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 3)
-    const oversized = files.filter(f => f.size > 50 * 1024 * 1024)
-    if (oversized.length > 0) {
-      setError('Images must be 50MB or smaller.')
-      return
-    }
     setError('')
     setImages(files)
     setImagePreviews(files.map(f => URL.createObjectURL(f)))
@@ -632,8 +627,6 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault()
-    const oversized = images.filter(f => f.size > 50 * 1024 * 1024)
-    if (oversized.length > 0) { setError('Images must be 50MB or smaller.'); return }
     setSaving(true); setError('')
     try {
       const imageUrls = await Promise.all(images.map(uploadImage))
@@ -674,7 +667,7 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
         )}
       </Field>
 
-      <Field label="Images (up to 3, max 50MB each)">
+      <Field label="Images (up to 3)">
         <label style={{ display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           Choose images
           <input type="file" accept="image/*" multiple onChange={pickImages} style={{ display: 'none' }} />
