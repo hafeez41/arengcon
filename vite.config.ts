@@ -8,27 +8,31 @@ function devApiPlugin(blobToken: string): Plugin {
   return {
     name: 'dev-api',
     configureServer(server) {
-      // Upload handler
+      // Upload handler — mirrors handleUpload token exchange for local dev
       server.middlewares.use('/api/upload-blob', (req, res) => {
-        if (req.method !== 'POST') {
-          res.statusCode = 405; res.end('Method not allowed'); return
-        }
-        const qs = new URL(req.url!, 'http://localhost').searchParams
-        const pathname = qs.get('pathname') ?? ''
-        const contentType = (req.headers['content-type'] as string) ?? 'application/octet-stream'
-        const chunks: Buffer[] = []
-        req.on('data', (chunk: Buffer) => chunks.push(chunk))
+        let body = ''
+        req.on('data', (chunk: Buffer) => { body += chunk.toString() })
         req.on('end', async () => {
           try {
-            const buffer = Buffer.concat(chunks)
-            const { put } = await import('@vercel/blob')
-            const blob = await put(pathname, buffer, { access: 'public', token: blobToken, contentType })
+            const { handleUpload } = await import('@vercel/blob/client')
+            const jsonResponse = await handleUpload({
+              body: JSON.parse(body),
+              request: req as any,
+              token: blobToken,
+              onBeforeGenerateToken: async (_pathname: string) => ({
+                allowedContentTypes: [
+                  'image/jpeg', 'image/jpg', 'image/png',
+                  'image/webp', 'image/gif', 'image/avif',
+                ],
+              }),
+              onUploadCompleted: async () => {},
+            })
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ url: blob.url }))
+            res.end(JSON.stringify(jsonResponse))
           } catch (err) {
             console.error('[dev-api] upload-blob failed:', err)
-            res.statusCode = 500
+            res.statusCode = 400
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ error: String(err) }))
           }

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { upload } from '@vercel/blob/client'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -7,21 +8,20 @@ export const supabase = createClient(url, key)
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
-/** Upload a file via the server-side API route and return its public Blob URL */
+/**
+ * Upload a file directly to Vercel Blob from the browser.
+ * Uses the two-phase client upload: tiny token exchange via /api/upload-blob,
+ * then browser streams the file straight to blob.vercel-storage.com — no
+ * serverless payload limit applies.
+ */
 export async function uploadImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop() ?? 'jpg'
   const pathname = `arengcon/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const res = await fetch(`/api/upload-blob?pathname=${encodeURIComponent(pathname)}`, {
-    method: 'POST',
-    body: file,
-    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+  const blob = await upload(pathname, file, {
+    access: 'public',
+    handleUploadUrl: '/api/upload-blob',
   })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(`Upload failed: ${body.error ?? res.statusText}`)
-  }
-  const { url: blobUrl } = await res.json()
-  return blobUrl
+  return blob.url
 }
 
 /**
