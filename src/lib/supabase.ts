@@ -8,38 +8,49 @@ export const supabase = createClient(url, key)
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
-/** Resize + compress an image to max 2400px on longest side, JPEG 82% quality */
-function compressImage(file: File): Promise<File> {
+/** Resize + compress an image to max 2400px, JPEG 82% — runs off the main thread */
+async function compressImage(file: File): Promise<File> {
   const MAX = 2400
   const QUALITY = 0.82
-  return new Promise((resolve) => {
-    const img = new Image()
-    const src = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(src)
-      let { width, height } = img
-      if (width <= MAX && height <= MAX && file.type === 'image/jpeg') {
-        resolve(file)
-        return
-      }
-      if (Math.max(width, height) > MAX) {
-        const scale = MAX / Math.max(width, height)
-        width = Math.round(width * scale)
-        height = Math.round(height * scale)
-      }
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-      canvas.toBlob(
-        (blob) => resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : file),
-        'image/jpeg',
-        QUALITY,
-      )
+  try {
+    // createImageBitmap decodes off the main thread in Chromium/Firefox
+    const bitmap = await createImageBitmap(file)
+    let { width, height } = bitmap
+    if (Math.max(width, height) > MAX) {
+      const scale = MAX / Math.max(width, height)
+      width = Math.round(width * scale)
+      height = Math.round(height * scale)
     }
-    img.onerror = () => { URL.revokeObjectURL(src); resolve(file) }
-    img.src = src
-  })
+    const canvas = new OffscreenCanvas(width, height)
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height)
+    bitmap.close()
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: QUALITY })
+    return new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })
+  } catch {
+    // Safari fallback — blocking but functional
+    return new Promise((resolve) => {
+      const img = new Image()
+      const src = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(src)
+        let { width, height } = img
+        if (Math.max(width, height) > MAX) {
+          const scale = MAX / Math.max(width, height)
+          width = Math.round(width * scale)
+          height = Math.round(height * scale)
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width; canvas.height = height
+        canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (b) => resolve(b ? new File([b], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : file),
+          'image/jpeg', QUALITY,
+        )
+      }
+      img.onerror = () => { URL.revokeObjectURL(src); resolve(file) }
+      img.src = src
+    })
+  }
 }
 
 export async function uploadImage(file: File): Promise<string> {
