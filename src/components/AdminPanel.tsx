@@ -176,8 +176,8 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
     if (files.length === 0) return
     setCompressing(true)
     const compressed = await Promise.all(files.map(compressImage))
-    setGallery(compressed)
-    setGalleryPreviews(compressed.map(f => URL.createObjectURL(f)))
+    setGallery(prev => [...prev, ...compressed])
+    setGalleryPreviews(prev => [...prev, ...compressed.map(f => URL.createObjectURL(f))])
     setCompressing(false)
   }
 
@@ -633,13 +633,13 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
     setForm(f => ({ ...f, [key]: val }))
 
   const pickImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []).slice(0, 3)
+    const files = Array.from(e.target.files ?? [])
     if (files.length === 0) return
     setError('')
     setCompressing(true)
     const compressed = await Promise.all(files.map(compressImage))
-    setImages(compressed)
-    setImagePreviews(compressed.map(f => URL.createObjectURL(f)))
+    setImages(prev => [...prev, ...compressed].slice(0, 3))
+    setImagePreviews(prev => [...prev, ...compressed.map(f => URL.createObjectURL(f))].slice(0, 3))
     setCompressing(false)
   }
 
