@@ -564,8 +564,72 @@ function TeamForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => 
   )
 }
 
+/* ── Team Edit Form ───────────────────────────────────────────────── */
+function TeamEditForm({ member, onSaved, onCancel }: { member: TeamMember; onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState({ name: member.name, role: member.role, bio: member.bio })
+  const [newPhoto, setNewPhoto] = useState<File | null>(null)
+  const [newPhotoPreview, setNewPhotoPreview] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof form, val: string) => setForm(f => ({ ...f, [key]: val }))
+
+  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setCompressing(true)
+    const c = await compressImage(file)
+    setNewPhoto(c); setNewPhotoPreview(URL.createObjectURL(c))
+    setCompressing(false)
+  }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setError('')
+    try {
+      let imageUrl = member.image
+      if (newPhoto) {
+        imageUrl = await uploadImage(newPhoto)
+        if (member.image && member.image !== '/avatar-default.svg') await deleteImages([member.image])
+      }
+      const { error: dbErr } = await supabase.from('team').update({
+        name: form.name, role: form.role, bio: form.bio, image: imageUrl,
+      }).eq('id', member.id)
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) { setError(err.message ?? 'Something went wrong.'); setSaving(false) }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 90 }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Full name"><input style={inputStyle} value={form.name} onChange={e => set('name', e.target.value)} required /></Field>
+        <Field label="Role / title"><input style={inputStyle} value={form.role} onChange={e => set('role', e.target.value)} required /></Field>
+      </div>
+      <Field label="Bio"><textarea style={ta} value={form.bio} onChange={e => set('bio', e.target.value)} required /></Field>
+      <Field label="Photo">
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <img src={newPhotoPreview || member.image || '/avatar-default.svg'} alt=""
+            style={{ height: 80, width: 80, objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--border)' }} />
+          <label style={{ display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            Replace<input type="file" accept="image/*" onChange={pickPhoto} style={{ display: 'none' }} />
+          </label>
+        </div>
+      </Field>
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving || compressing} style={{ padding: '12px 32px', background: 'var(--gold)', border: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--bg)', cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1 }}>
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        <button type="button" onClick={onCancel} style={{ padding: '12px 24px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
 /* ── Team Row ─────────────────────────────────────────────────────── */
-function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => void }) {
+function TeamRow({ m, onDelete, onEdit }: { m: TeamMember; onDelete: (id: number) => void; onEdit: (m: TeamMember) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
@@ -606,9 +670,14 @@ function TeamRow({ m, onDelete }: { m: TeamMember; onDelete: (id: number) => voi
             </button>
           </div>
         ) : (
-          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-            Delete
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={() => onEdit(m)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Edit
+            </button>
+            <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Delete
+            </button>
+          </div>
         )}
       </div>
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
@@ -691,8 +760,48 @@ function RefForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => v
   )
 }
 
+/* ── Ref Edit Form ────────────────────────────────────────────────── */
+function RefEditForm({ ref: r, onSaved, onCancel }: { ref: Reference; onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState({ name: r.name, title: r.title, project: r.project, quote: r.quote })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof form, val: string) => setForm(f => ({ ...f, [key]: val }))
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setError('')
+    try {
+      const { error: dbErr } = await supabase.from('client_references').update({
+        name: form.name, title: form.title || null, project: form.project || null, quote: form.quote || null,
+      }).eq('id', r.id)
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) { setError(err.message ?? 'Something went wrong.'); setSaving(false) }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 90 }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Name *"><input style={inputStyle} value={form.name} onChange={e => set('name', e.target.value)} required /></Field>
+        <Field label="Title / Company"><input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Managing Director" /></Field>
+      </div>
+      <Field label="Project"><input style={inputStyle} value={form.project} onChange={e => set('project', e.target.value)} placeholder="e.g. Lekki Tower" /></Field>
+      <Field label="Quote"><textarea style={ta} value={form.quote} onChange={e => set('quote', e.target.value)} /></Field>
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving} style={{ padding: '12px 32px', background: 'var(--gold)', border: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--bg)', cursor: saving ? 'default' : 'none', opacity: saving ? 0.6 : 1 }}>
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        <button type="button" onClick={onCancel} style={{ padding: '12px 24px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
 /* ── Ref Row ──────────────────────────────────────────────────────── */
-function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void }) {
+function RefRow({ r, onDelete, onEdit }: { r: Reference; onDelete: (id: number) => void; onEdit: (r: Reference) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
@@ -730,9 +839,14 @@ function RefRow({ r, onDelete }: { r: Reference; onDelete: (id: number) => void 
             </button>
           </div>
         ) : (
-          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-            Delete
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={() => onEdit(r)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Edit
+            </button>
+            <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Delete
+            </button>
+          </div>
         )}
       </div>
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
@@ -1102,6 +1216,8 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   // Edit state
   const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [editingRef, setEditingRef] = useState<Reference | null>(null)
   const [editingUpdate, setEditingUpdate] = useState<UpdateEntry | null>(null)
 
   const panelRef = useRef<HTMLDivElement>(null)
@@ -1190,6 +1306,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   const handleMemberSaved = () => {
     setAddingMember(false)
+    setEditingMember(null)
     fetchMembers()
     onSaved()
   }
@@ -1201,6 +1318,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   const handleRefSaved = () => {
     setAddingRef(false)
+    setEditingRef(null)
     fetchRefs()
     onSaved()
   }
@@ -1278,6 +1396,8 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
               setAddingRef(false)
               setAddingUpdate(false)
               setEditingProject(null)
+              setEditingMember(null)
+              setEditingRef(null)
               setEditingUpdate(null)
             }} />
 
@@ -1326,7 +1446,14 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
             {/* ── TEAM TAB ── */}
             {activeTab === 'team' && (
-              addingMember ? (
+              editingMember ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    Edit <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Member</em>
+                  </h2>
+                  <TeamEditForm member={editingMember} onSaved={handleMemberSaved} onCancel={() => setEditingMember(null)} />
+                </>
+              ) : addingMember ? (
                 <>
                   <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
                     New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Member</em>
@@ -1353,7 +1480,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                       </p>
                     )}
                     {members.map(m => (
-                      <TeamRow key={m.id} m={m} onDelete={handleMemberDelete} />
+                      <TeamRow key={m.id} m={m} onDelete={handleMemberDelete} onEdit={setEditingMember} />
                     ))}
                   </div>
                 </>
@@ -1362,7 +1489,14 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
             {/* ── REFERENCES TAB ── */}
             {activeTab === 'references' && (
-              addingRef ? (
+              editingRef ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    Edit <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Reference</em>
+                  </h2>
+                  <RefEditForm ref={editingRef} onSaved={handleRefSaved} onCancel={() => setEditingRef(null)} />
+                </>
+              ) : addingRef ? (
                 <>
                   <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
                     New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Reference</em>
@@ -1402,7 +1536,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                       </p>
                     )}
                     {refs.map(r => (
-                      <RefRow key={r.id} r={r} onDelete={handleRefDelete} />
+                      <RefRow key={r.id} r={r} onDelete={handleRefDelete} onEdit={setEditingRef} />
                     ))}
                   </div>
                 </>
