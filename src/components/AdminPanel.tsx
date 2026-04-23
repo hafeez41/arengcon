@@ -299,8 +299,123 @@ function ProjectForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () 
   )
 }
 
+/* ── Project Edit Form ────────────────────────────────────────────── */
+function ProjectEditForm({ project, onSaved, onCancel }: { project: Project; onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState({
+    title: project.title, location: project.location, year: project.year,
+    type: project.type,
+    area: project.area === '—' ? '' : project.area,
+    duration: project.duration === '—' ? '' : project.duration,
+    youtubeUrl: project.videoId ? `https://www.youtube.com/watch?v=${project.videoId}` : '',
+    description: project.description,
+  })
+  const [newThumb, setNewThumb] = useState<File | null>(null)
+  const [newThumbPreview, setNewThumbPreview] = useState('')
+  const [keptGallery, setKeptGallery] = useState<string[]>(project.gallery ?? [])
+  const [addedGallery, setAddedGallery] = useState<File[]>([])
+  const [addedGalleryPreviews, setAddedGalleryPreviews] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof form, val: string) => setForm(f => ({ ...f, [key]: val }))
+
+  const pickThumb = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setCompressing(true)
+    const c = await compressImage(file)
+    setNewThumb(c); setNewThumbPreview(URL.createObjectURL(c))
+    setCompressing(false)
+  }
+
+  const pickGallery = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []); if (!files.length) return
+    setCompressing(true)
+    const compressed = await Promise.all(files.map(compressImage))
+    setAddedGallery(prev => [...prev, ...compressed])
+    setAddedGalleryPreviews(prev => [...prev, ...compressed.map(f => URL.createObjectURL(f))])
+    setCompressing(false)
+  }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setError('')
+    try {
+      let imgUrl = project.img
+      if (newThumb) { imgUrl = await uploadImage(newThumb); await deleteImages([project.img]) }
+      const removedUrls = (project.gallery ?? []).filter(u => !keptGallery.includes(u))
+      await deleteImages(removedUrls)
+      const uploadedUrls = await Promise.all(addedGallery.map(uploadImage))
+      const finalGallery = [...keptGallery, ...uploadedUrls]
+      const { error: dbErr } = await supabase.from('projects').update({
+        title: form.title, location: form.location, year: form.year, type: form.type,
+        area: form.area || '—', duration: form.duration || '—',
+        video_id: extractVideoId(form.youtubeUrl),
+        img: imgUrl, description: form.description, gallery: finalGallery,
+      }).eq('id', project.id)
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) { setError(err.message ?? 'Something went wrong.'); setSaving(false) }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 100 }
+  const btnStyle = { display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'var(--muted)' }
+  const xBtn: React.CSSProperties = { position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', width: 18, height: 18, cursor: 'none', fontSize: 11, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Title"><input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)} required /></Field>
+        <Field label="Location (city)"><input style={inputStyle} value={form.location} onChange={e => set('location', e.target.value)} required /></Field>
+        <Field label="Year"><input style={inputStyle} value={form.year} onChange={e => set('year', e.target.value)} required /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+        <Field label="Type"><select style={inputStyle} value={form.type} onChange={e => set('type', e.target.value)}>{TYPES.map(t => <option key={t}>{t}</option>)}</select></Field>
+        <Field label="Area"><input style={inputStyle} value={form.area} onChange={e => set('area', e.target.value)} /></Field>
+        <Field label="Duration"><input style={inputStyle} value={form.duration} onChange={e => set('duration', e.target.value)} /></Field>
+      </div>
+      <Field label="YouTube URL (optional)">
+        <input style={inputStyle} value={form.youtubeUrl} onChange={e => set('youtubeUrl', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+        {form.youtubeUrl && extractVideoId(form.youtubeUrl) && <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--gold)', marginTop: 4 }}>✓ Video ID: {extractVideoId(form.youtubeUrl)}</p>}
+      </Field>
+      <Field label="Description"><textarea style={ta} value={form.description} onChange={e => set('description', e.target.value)} required /></Field>
+      <Field label="Thumbnail">
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <img src={newThumbPreview || project.img} alt="" style={{ height: 100, objectFit: 'cover', border: '1px solid var(--border)' }} />
+          <label style={btnStyle}>Replace<input type="file" accept="image/*" onChange={pickThumb} style={{ display: 'none' }} /></label>
+        </div>
+      </Field>
+      <Field label="Gallery">
+        {(keptGallery.length > 0 || addedGalleryPreviews.length > 0) && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            {keptGallery.map(src => (
+              <div key={src} style={{ position: 'relative' }}>
+                <img src={src} alt="" style={{ height: 72, width: 72, objectFit: 'cover', border: '1px solid var(--border)' }} />
+                <button type="button" onClick={() => setKeptGallery(p => p.filter(u => u !== src))} style={xBtn}>×</button>
+              </div>
+            ))}
+            {addedGalleryPreviews.map((src, i) => (
+              <div key={`n${i}`} style={{ position: 'relative' }}>
+                <img src={src} alt="" style={{ height: 72, width: 72, objectFit: 'cover', border: '1px solid var(--gold)', opacity: 0.9 }} />
+                <button type="button" onClick={() => { setAddedGallery(p => p.filter((_, j) => j !== i)); setAddedGalleryPreviews(p => p.filter((_, j) => j !== i)) }} style={xBtn}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <label style={btnStyle}>Add images<input type="file" accept="image/*" multiple onChange={pickGallery} style={{ display: 'none' }} /></label>
+      </Field>
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving || compressing} style={{ padding: '12px 32px', background: 'var(--gold)', border: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--bg)', cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1 }}>
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        <button type="button" onClick={onCancel} style={{ padding: '12px 24px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
 /* ── Project Row ──────────────────────────────────────────────────── */
-function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => void }) {
+function ProjectRow({ p, onDelete, onEdit }: { p: Project; onDelete: (id: number) => void; onEdit: (p: Project) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
@@ -335,9 +450,14 @@ function ProjectRow({ p, onDelete }: { p: Project; onDelete: (id: number) => voi
             </button>
           </div>
         ) : (
-          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-            Delete
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={() => onEdit(p)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Edit
+            </button>
+            <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Delete
+            </button>
+          </div>
         )}
       </div>
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
@@ -723,8 +843,97 @@ function UpdateForm({ onSaved, onCancel }: { onSaved: () => void; onCancel: () =
   )
 }
 
+/* ── Update Edit Form ─────────────────────────────────────────────── */
+function UpdateEditForm({ update, onSaved, onCancel }: { update: UpdateEntry; onSaved: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState({
+    title: update.title,
+    details: update.details,
+    youtubeUrl: update.video_id ? `https://www.youtube.com/watch?v=${update.video_id}` : '',
+  })
+  const [keptImages, setKeptImages] = useState<string[]>(update.images ?? [])
+  const [addedImages, setAddedImages] = useState<File[]>([])
+  const [addedImagePreviews, setAddedImagePreviews] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [compressing, setCompressing] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: keyof typeof form, val: string) => setForm(f => ({ ...f, [key]: val }))
+
+  const pickImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const available = 3 - keptImages.length - addedImages.length
+    if (available <= 0) return
+    const files = Array.from(e.target.files ?? []).slice(0, available); if (!files.length) return
+    setCompressing(true)
+    const compressed = await Promise.all(files.map(compressImage))
+    setAddedImages(prev => [...prev, ...compressed])
+    setAddedImagePreviews(prev => [...prev, ...compressed.map(f => URL.createObjectURL(f))])
+    setCompressing(false)
+  }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setError('')
+    try {
+      const removedUrls = (update.images ?? []).filter(u => !keptImages.includes(u))
+      await deleteImages(removedUrls)
+      const uploadedUrls = await Promise.all(addedImages.map(uploadImage))
+      const finalImages = [...keptImages, ...uploadedUrls]
+      const { error: dbErr } = await supabase.from('updates').update({
+        title: form.title, details: form.details,
+        video_id: extractVideoId(form.youtubeUrl) || null,
+        images: finalImages,
+      }).eq('id', update.id)
+      if (dbErr) throw dbErr
+      onSaved()
+    } catch (err: any) { setError(err.message ?? 'Something went wrong.'); setSaving(false) }
+  }
+
+  const ta: React.CSSProperties = { ...inputStyle, resize: 'vertical', minHeight: 120 }
+  const btnStyle = { display: 'inline-block', padding: '10px 20px', border: '1px solid var(--border)', cursor: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'var(--muted)' }
+  const xBtn: React.CSSProperties = { position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', width: 18, height: 18, cursor: 'none', fontSize: 11, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+  const totalImages = keptImages.length + addedImages.length
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <Field label="Title *"><input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)} required /></Field>
+      <Field label="Details *"><textarea style={ta} value={form.details} onChange={e => set('details', e.target.value)} required /></Field>
+      <Field label="YouTube URL (optional)">
+        <input style={inputStyle} value={form.youtubeUrl} onChange={e => set('youtubeUrl', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+        {form.youtubeUrl && extractVideoId(form.youtubeUrl) && <p style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--gold)', marginTop: 4 }}>✓ Video ID: {extractVideoId(form.youtubeUrl)}</p>}
+      </Field>
+      <Field label={`Images (${totalImages}/3)`}>
+        {(keptImages.length > 0 || addedImagePreviews.length > 0) && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            {keptImages.map(src => (
+              <div key={src} style={{ position: 'relative' }}>
+                <img src={src} alt="" style={{ height: 72, width: 72, objectFit: 'cover', border: '1px solid var(--border)' }} />
+                <button type="button" onClick={() => setKeptImages(p => p.filter(u => u !== src))} style={xBtn}>×</button>
+              </div>
+            ))}
+            {addedImagePreviews.map((src, i) => (
+              <div key={`n${i}`} style={{ position: 'relative' }}>
+                <img src={src} alt="" style={{ height: 72, width: 72, objectFit: 'cover', border: '1px solid var(--gold)', opacity: 0.9 }} />
+                <button type="button" onClick={() => { setAddedImages(p => p.filter((_, j) => j !== i)); setAddedImagePreviews(p => p.filter((_, j) => j !== i)) }} style={xBtn}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+        {totalImages < 3 && (
+          <label style={btnStyle}>Add images<input type="file" accept="image/*" multiple onChange={pickImages} style={{ display: 'none' }} /></label>
+        )}
+      </Field>
+      {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        <button type="submit" disabled={saving || compressing} style={{ padding: '12px 32px', background: 'var(--gold)', border: 'none', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--bg)', cursor: (saving || compressing) ? 'default' : 'none', opacity: (saving || compressing) ? 0.6 : 1 }}>
+          {compressing ? 'Compressing…' : saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        <button type="button" onClick={onCancel} style={{ padding: '12px 24px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
 /* ── Update Row ───────────────────────────────────────────────────── */
-function UpdateRow({ u, onDelete }: { u: UpdateEntry; onDelete: (id: number) => void }) {
+function UpdateRow({ u, onDelete, onEdit }: { u: UpdateEntry; onDelete: (id: number) => void; onEdit: (u: UpdateEntry) => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
@@ -756,9 +965,14 @@ function UpdateRow({ u, onDelete }: { u: UpdateEntry; onDelete: (id: number) => 
             </button>
           </div>
         ) : (
-          <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none', flexShrink: 0 }}>
-            Delete
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={() => onEdit(u)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Edit
+            </button>
+            <button onClick={() => setConfirming(true)} style={{ padding: '6px 14px', background: 'none', border: '1px solid var(--border)', fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted)', cursor: 'none' }}>
+              Delete
+            </button>
+          </div>
         )}
       </div>
       {error && <p style={{ fontFamily: 'var(--sans)', fontSize: 12, color: '#e05a5a', marginTop: 6 }}>{error}</p>}
@@ -886,6 +1100,10 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
   const [addingUpdate, setAddingUpdate] = useState(false)
   const [loadingUpdates, setLoadingUpdates] = useState(true)
 
+  // Edit state
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [editingUpdate, setEditingUpdate] = useState<UpdateEntry | null>(null)
+
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Auth
@@ -960,6 +1178,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   const handleProjectSaved = () => {
     setAddingProject(false)
+    setEditingProject(null)
     fetchProjects()
     onSaved()
   }
@@ -993,6 +1212,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
   const handleUpdateSaved = () => {
     setAddingUpdate(false)
+    setEditingUpdate(null)
     fetchUpdates()
     onSaved()
   }
@@ -1057,11 +1277,20 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
               setAddingMember(false)
               setAddingRef(false)
               setAddingUpdate(false)
+              setEditingProject(null)
+              setEditingUpdate(null)
             }} />
 
             {/* ── PROJECTS TAB ── */}
             {activeTab === 'projects' && (
-              addingProject ? (
+              editingProject ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    Edit <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Project</em>
+                  </h2>
+                  <ProjectEditForm project={editingProject} onSaved={handleProjectSaved} onCancel={() => setEditingProject(null)} />
+                </>
+              ) : addingProject ? (
                 <>
                   <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
                     New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Project</em>
@@ -1088,7 +1317,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                       </p>
                     )}
                     {projects.map(p => (
-                      <ProjectRow key={p.id} p={p} onDelete={handleProjectDelete} />
+                      <ProjectRow key={p.id} p={p} onDelete={handleProjectDelete} onEdit={setEditingProject} />
                     ))}
                   </div>
                 </>
@@ -1192,7 +1421,14 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
 
             {/* ── UPDATES TAB ── */}
             {activeTab === 'updates' && (
-              addingUpdate ? (
+              editingUpdate ? (
+                <>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
+                    Edit <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Update</em>
+                  </h2>
+                  <UpdateEditForm update={editingUpdate} onSaved={handleUpdateSaved} onCancel={() => setEditingUpdate(null)} />
+                </>
+              ) : addingUpdate ? (
                 <>
                   <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 300, color: 'var(--text)', marginBottom: 32 }}>
                     New <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Update</em>
@@ -1232,7 +1468,7 @@ export default function AdminPanel({ onClose, onSaved }: Props) {
                       </p>
                     )}
                     {updates.map(u => (
-                      <UpdateRow key={u.id} u={u} onDelete={handleUpdateDelete} />
+                      <UpdateRow key={u.id} u={u} onDelete={handleUpdateDelete} onEdit={setEditingUpdate} />
                     ))}
                   </div>
                 </>

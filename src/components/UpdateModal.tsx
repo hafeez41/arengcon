@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LogoIcon from './LogoIcon'
+import Lightbox from './Lightbox'
 import type { Update } from './Updates'
 
 interface Props {
@@ -19,6 +20,8 @@ function formatDate(dateStr: string): string {
 }
 
 export default function UpdateModal({ update, onClose }: Props) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', fn)
@@ -198,30 +201,36 @@ export default function UpdateModal({ update, onClose }: Props) {
                       key={i}
                       src={src}
                       alt={`${update.title} image ${i + 1}`}
+                      onClick={() => setLightboxIndex(i)}
                       style={{
                         width: '100%',
                         maxHeight: 400,
                         objectFit: 'cover',
                         display: 'block',
                         border: '1px solid var(--border)',
+                        cursor: 'none',
                       }}
                     />
                   ))}
                 </div>
               )}
+              <Lightbox
+                images={update.images}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onChange={setLightboxIndex}
+              />
 
               {/* Details text */}
-              <p style={{
-                fontFamily: 'var(--sans)',
-                fontSize: 15,
-                fontWeight: 300,
-                lineHeight: 1.9,
-                color: 'var(--text)',
-                marginTop: 32,
-                maxWidth: 760,
-              }}>
-                {update.details}
-              </p>
+              <div style={{ marginTop: 32 }}>
+                {update.details.split(/\n\n+/).map((para, i) => (
+                  <p key={i} style={{ fontFamily: "'Rajdhani', system-ui, sans-serif", fontSize: 17, fontWeight: 400, lineHeight: 1.85, color: 'var(--text)', marginBottom: 20 }}>
+                    {para.split('\n').map((line, j, arr) => (
+                      <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                    ))}
+                  </p>
+                ))}
+              </div>
 
               {/* Date */}
               {update.created_at && (

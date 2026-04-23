@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LogoIcon from './LogoIcon'
+import Lightbox from './Lightbox'
 
 export interface Project {
   id: number
@@ -36,6 +37,7 @@ const PlayIcon = () => (
 
 export default function ProjectModal({ project, onClose }: Props) {
   const [playing, setPlaying] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -215,11 +217,15 @@ export default function ProjectModal({ project, onClose }: Props) {
               </div>
 
               {/* Description */}
-              <div style={{ marginBottom: 52, maxWidth: 680 }}>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 16 }}>About the Project</p>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 300, lineHeight: 1.9, color: 'var(--text)' }}>
-                  {project.description}
-                </p>
+              <div style={{ marginBottom: 52 }}>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 20 }}>About the Project</p>
+                {project.description.split(/\n\n+/).map((para, i) => (
+                  <p key={i} style={{ fontFamily: "'Rajdhani', system-ui, sans-serif", fontSize: 17, fontWeight: 400, lineHeight: 1.85, color: 'var(--text)', marginBottom: 20 }}>
+                    {para.split('\n').map((line, j, arr) => (
+                      <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                    ))}
+                  </p>
+                ))}
               </div>
 
               {/* Gallery */}
@@ -228,13 +234,20 @@ export default function ProjectModal({ project, onClose }: Props) {
                   <p style={{ fontFamily: 'var(--sans)', fontSize: 9, letterSpacing: '0.38em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 16 }}>Gallery</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 10 }}>
                     {project.gallery.map((src, i) => (
-                      <div key={i} className="img-zoom" style={{ aspectRatio: '4/3', background: 'var(--surface)' }}>
+                      <div key={i} className="img-zoom" style={{ aspectRatio: '4/3', background: 'var(--surface)', cursor: 'none' }}
+                        onClick={() => setLightboxIndex(i)}>
                         <img src={src} alt={`${project.title} view ${i + 1}`} loading="lazy" />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+              <Lightbox
+                images={project.gallery}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onChange={setLightboxIndex}
+              />
             </div>
           </motion.div>
         </>
