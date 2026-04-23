@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import ProjectModal, { type Project } from './ProjectModal'
-import { supabase } from '../lib/supabase'
+import { fetchProjects } from '../lib/queries'
 
 const SAMPLE_PROJECTS: Project[] = [
   {
@@ -96,20 +96,6 @@ const SAMPLE_PROJECTS: Project[] = [
 type Filter = 'All' | 'Construction' | 'Architecture' | 'Interior'
 const FILTERS: Filter[] = ['All', 'Construction', 'Architecture', 'Interior']
 
-async function fetchFromSupabase(): Promise<Project[]> {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error || !data || data.length === 0) return []
-  return data.map((r: any) => ({
-    id: Number(r.id), title: r.title, location: r.location, year: r.year,
-    category: r.category, type: r.type, img: r.img, description: r.description,
-    area: r.area ?? '—', duration: r.duration ?? '—',
-    videoId: r.video_id ?? '', gallery: r.gallery ?? [],
-  }))
-}
-
 /* ─── Badge ──────────────────────────────────────────────────────── */
 /* Badges sit on top of images so we never use theme CSS vars here — */
 /* hardcoded dark overlay + light text works on any image in any     */
@@ -194,9 +180,11 @@ export default function Projects({ refreshKey = 0 }: { refreshKey?: number }) {
   const inView = useInView(headRef, { once: true, margin: '-50px' })
 
   useEffect(() => {
-    fetchFromSupabase().then(data => {
-      if (data.length > 0) setProjects(data)
+    let alive = true
+    fetchProjects().then(data => {
+      if (alive && data.length > 0) setProjects(data)
     })
+    return () => { alive = false }
   }, [refreshKey])
 
   const shown = filter === 'All' ? projects : projects.filter(p => p.type === filter)

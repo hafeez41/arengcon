@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { fetchTeam } from '../lib/queries'
 
 interface Member {
   name: string
@@ -72,19 +72,6 @@ const SAMPLE_TEAM: Member[] = [
   },
 ]
 
-async function fetchFromSupabase(): Promise<Member[]> {
-  const { data, error } = await supabase
-    .from('team')
-    .select('*')
-    .order('created_at', { ascending: true })
-  if (error || !data || data.length === 0) return []
-  return data.map((r: any) => ({
-    name: r.name,
-    role: r.role,
-    bio: r.bio,
-    image: r.image || '/avatar-default.svg',
-  }))
-}
 
 /* ── Member Modal ─────────────────────────────────────────────────── */
 function MemberModal({ member, onClose }: { member: Member | null; onClose: () => void }) {
@@ -265,9 +252,11 @@ export default function Team({ refreshKey = 0 }: { refreshKey?: number }) {
   const [selected, setSelected] = useState<Member | null>(null)
 
   useEffect(() => {
-    fetchFromSupabase().then(data => {
-      if (data.length > 0) setMembers(data)
+    let alive = true
+    fetchTeam().then(data => {
+      if (alive && data.length > 0) setMembers(data)
     })
+    return () => { alive = false }
   }, [refreshKey])
 
   return (

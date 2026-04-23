@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { supabase } from '../lib/supabase'
-
-interface Reference {
-  id: number
-  name: string
-  title: string
-  project: string
-  quote: string
-}
+import { fetchReferences, type Reference } from '../lib/queries'
 
 interface Props {
   refreshKey?: number
@@ -59,23 +51,6 @@ const PLACEHOLDER_REFS: Reference[] = [
   },
 ]
 
-async function fetchFromSupabase(): Promise<Reference[]> {
-  const { data } = await supabase
-    .from('client_references')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(6)
-  if (data && data.length > 0) {
-    return data.map((r: any) => ({
-      id: r.id,
-      name: r.name,
-      title: r.title || '',
-      project: r.project || '',
-      quote: r.quote || '',
-    }))
-  }
-  return PLACEHOLDER_REFS
-}
 
 function RefCard({ r, i }: { r: Reference; i: number }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -147,7 +122,12 @@ export default function References({ refreshKey }: Props) {
   const [refs, setRefs] = useState<Reference[]>(PLACEHOLDER_REFS)
 
   useEffect(() => {
-    fetchFromSupabase().then(setRefs)
+    let alive = true
+    fetchReferences().then(data => {
+      if (!alive) return
+      setRefs(data.length > 0 ? data : PLACEHOLDER_REFS)
+    })
+    return () => { alive = false }
   }, [refreshKey])
 
   return (

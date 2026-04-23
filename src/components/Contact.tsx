@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { fetchSiteSettings } from '../lib/queries'
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%', background: 'transparent',
@@ -30,14 +30,16 @@ export default function Contact({ refreshKey }: { refreshKey?: number }) {
   const [info, setInfo] = useState(DEFAULTS)
 
   useEffect(() => {
-    supabase.from('site_settings').select('key, value').then(({ data }) => {
-      if (!data || data.length === 0) return
+    let alive = true
+    fetchSiteSettings().then(settings => {
+      if (!alive) return
       const merged = { ...DEFAULTS }
-      data.forEach((row: { key: string; value: string }) => {
-        if (row.key in merged) (merged as any)[row.key] = row.value
+      Object.entries(settings).forEach(([key, value]) => {
+        if (key in merged) (merged as any)[key] = value
       })
       setInfo(merged)
     })
+    return () => { alive = false }
   }, [refreshKey])
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {

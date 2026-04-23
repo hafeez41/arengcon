@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { fetchUpdates } from '../lib/queries'
 import UpdateModal from './UpdateModal'
 import LogoIcon from './LogoIcon'
 
@@ -201,17 +201,12 @@ export default function Updates({ refreshKey }: Props) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(10).then(({ data }) => {
-      if (data && data.length > 0) {
-        setUpdates(data.map((r: any) => ({
-          id: r.id, title: r.title, details: r.details || '',
-          video_id: r.video_id || null, images: r.images ?? [],
-          created_at: r.created_at || '',
-        })))
-      } else {
-        setUpdates(PLACEHOLDER_UPDATES)
-      }
+    let alive = true
+    fetchUpdates().then(data => {
+      if (!alive) return
+      setUpdates(data.length > 0 ? data as Update[] : PLACEHOLDER_UPDATES)
     })
+    return () => { alive = false }
   }, [refreshKey])
 
   const looped = updates.length > 0 ? [...updates, ...updates] : []

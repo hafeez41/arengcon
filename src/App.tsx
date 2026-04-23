@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Intro from './components/Intro'
 import Navbar from './components/Navbar'
@@ -12,7 +12,9 @@ import References from './components/References'
 import Updates from './components/Updates'
 import Footer from './components/Footer'
 import CustomCursor from './components/CustomCursor'
-import AdminPanel from './components/AdminPanel'
+import type { SavedSection } from './components/admin/AdminPanel'
+
+const AdminPanel = lazy(() => import('./components/admin/AdminPanel'))
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false)
@@ -22,18 +24,24 @@ export default function App() {
   const [projectsKey, setProjectsKey] = useState(0)
   const [teamKey, setTeamKey] = useState(0)
   const [refsKey, setRefsKey] = useState(0)
-  const [footerKey, setFooterKey] = useState(0)
+  const [settingsKey, setSettingsKey] = useState(0)
   const [updatesKey, setUpdatesKey] = useState(0)
 
-  // Sync class to <html> so CSS vars cascade everywhere
   useEffect(() => {
     document.documentElement.classList.toggle('light', isLight)
   }, [isLight])
 
-  // Detect ?admin in URL
   useEffect(() => {
     setIsAdminMode(window.location.search.includes('admin'))
   }, [])
+
+  const bump = (section: SavedSection) => {
+    if (section === 'projects')   setProjectsKey(k => k + 1)
+    if (section === 'team')       setTeamKey(k => k + 1)
+    if (section === 'references') setRefsKey(k => k + 1)
+    if (section === 'settings')   setSettingsKey(k => k + 1)
+    if (section === 'updates')    setUpdatesKey(k => k + 1)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
@@ -57,14 +65,13 @@ export default function App() {
               <Team refreshKey={teamKey} />
               <References refreshKey={refsKey} />
               <Studio />
-              <Contact refreshKey={footerKey} />
+              <Contact refreshKey={settingsKey} />
             </main>
             <Footer />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Admin entry — only visible when visiting /?admin */}
       <AnimatePresence>
         {isAdminMode && !adminOpen && (
           <motion.button
@@ -91,16 +98,9 @@ export default function App() {
 
       <AnimatePresence>
         {adminOpen && (
-          <AdminPanel
-            onClose={() => setAdminOpen(false)}
-            onSaved={() => {
-              setProjectsKey(k => k + 1)
-              setTeamKey(k => k + 1)
-              setRefsKey(k => k + 1)
-              setFooterKey(k => k + 1)
-              setUpdatesKey(k => k + 1)
-            }}
-          />
+          <Suspense fallback={null}>
+            <AdminPanel onClose={() => setAdminOpen(false)} onSaved={bump} />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>
