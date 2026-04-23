@@ -32,7 +32,7 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
             ))}
           </div>
 
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', padding: '0 clamp(20px, 6vw, 60px)', boxSizing: 'border-box' }}>
             {/* Logo spring-pop */}
             <motion.div
               initial={{ scale: 0.3, opacity: 0 }}
@@ -40,20 +40,19 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ color: 'var(--text)', marginBottom: 28 }}
             >
-              <LogoIcon style={{ width: 'clamp(140px, 38vw, 320px)', height: 'clamp(140px, 38vw, 320px)' }} />
+              <LogoIcon style={{ width: 'clamp(100px, 28vw, 320px)', height: 'clamp(100px, 28vw, 320px)' }} />
             </motion.div>
 
             {/* Company name */}
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', textAlign: 'center', width: '100%' }}>
               <motion.h1
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 transition={{ delay: 0.42, duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+                className="intro-h1"
                 style={{
                   fontFamily: 'var(--serif)',
-                  fontSize: 'clamp(3.8rem, 12vw, 9rem)',
                   fontWeight: 700,
-                  letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   color: 'var(--text)',
                   lineHeight: 1,
@@ -68,11 +67,11 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85, duration: 0.6 }}
+              className="intro-tag"
               style={{
                 fontFamily: 'var(--sans)', fontWeight: 500,
-                fontSize: 14, letterSpacing: '0.38em',
                 textTransform: 'uppercase', color: 'var(--muted)',
-                marginTop: 18,
+                marginTop: 18, textAlign: 'center',
               }}
             >
               A Design &amp; Construction Company
@@ -91,6 +90,15 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
               }}
             />
           </div>
+
+          <style>{`
+            .intro-h1 { font-size: clamp(3.8rem, 12vw, 9rem); letter-spacing: 0.22em; }
+            .intro-tag { font-size: 14px; letter-spacing: 0.38em; }
+            @media (max-width: 500px) {
+              .intro-h1 { font-size: clamp(1.8rem, 9vw, 4rem); letter-spacing: 0.1em; }
+              .intro-tag { font-size: 11px; letter-spacing: 0.14em; }
+            }
+          `}</style>
         </motion.div>
       )}
     </AnimatePresence>
